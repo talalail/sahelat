@@ -11,7 +11,7 @@
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
 <main class="container">
   <h1>تسجيل باحث جديد</h1>
-  <form id="registerForm" class="form-card">
+  <form id="registerForm" class="form-card" action="seeker-home.html">
     <div class="form-grid">
       <div class="field"><label for="firstName">الاسم الأول *</label><input id="firstName" name="firstName" required /></div>
       <div class="field"><label for="middleName">اسم الأب</label><input id="middleName" name="middleName" /></div>
@@ -43,7 +43,7 @@
           <label style="display:flex; align-items:center; gap:6px"><input type="radio" name="ageMode" value="dob" /> تاريخ ميلاد</label>
         </div>
         <div id="ageFields" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px">
-          <input id="ageInput" inputmode="numeric" pattern="\\d{2}" maxlength="2" placeholder="مثال: 26" />
+          <input id="ageInput" inputmode="numeric" maxlength="2" placeholder="مثال: 26" />
           <input id="dobInput" type="date" style="display:none" />
         </div>
         <div class="form-help">اختر إدخال العمر برقمين أو اختر تاريخ الميلاد الكامل</div>
@@ -168,15 +168,20 @@
   const form = document.getElementById('registerForm');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const getVal = (id) => (document.getElementById(id)?.value || '').trim();
-    const ageMode = document.querySelector('input[name="ageMode"]:checked')?.value || 'age';
+    const getVal = (id) => {
+      const el = document.getElementById(id);
+      return (el && el.value ? el.value : '').trim();
+    };
+      const ageModeEl = document.querySelector('input[name="ageMode"]:checked');
+      const ageMode = (ageModeEl && ageModeEl.value) || 'age';
     // Collect jobs (max two already enforced)
     const jobs = Array.from(document.querySelectorAll('input[name="job"]:checked')).map(i=>i.value);
     // Collect certificate names only for demo display
     const certificateNames = Array.from(certs.values()).map(f => f.name);
     // Optional photo as data URL
     let photoDataUrl = '';
-    const file = document.getElementById('photo')?.files?.[0];
+      const photoEl = document.getElementById('photo');
+      const file = photoEl && photoEl.files && photoEl.files[0];
     if (file) {
       photoDataUrl = await new Promise((resolve) => { const fr = new FileReader(); fr.onload = () => resolve(fr.result || ''); fr.readAsDataURL(file); });
     }
@@ -222,7 +227,7 @@
       localStorage.setItem('seekerProfile', JSON.stringify(profile));
       localStorage.setItem('seekers', JSON.stringify(seekers));
     } catch {}
-    window.location.href = 'seeker-home.html';
+    try { window.location.assign('seeker-home.html'); } catch (navErr) { window.location.href = 'seeker-home.html'; }
   });
 </script>
 </body>
