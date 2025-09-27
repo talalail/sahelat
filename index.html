@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>سهلات - الصفحة الرئيسية</title>
+    <meta name="description" content="سهلات: منصة تربط الشركات بالباحثين عن عمل بسهولة وسرعة" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=20250927-1" />
+  </head>
+  <body class="home">
+    <header class="site-header">
+      <div class="container">
+        <div class="brand">سهلات</div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero hero--home">
+        <h1 class="hero__title hero__title--brand">سهلات</h1>
+        <p class="hero__subtitle">
+          <span id="rotatingText" class="show">غطِّ المكان قبل لا يوقف الشغل.</span>
+        </p>
+
+        <div class="choices">
+          <a class="choice-card" href="company-register.html" aria-label="شركات / مؤسسات">
+            <span class="choice-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" role="img">
+                <path d="M3 21h18v-2H3v2zm2-4h4V3H5v14zm6 0h8V7h-8v10zm-4-8h2V5H7v4zm6 6h2v-2h-2v2zm0-4h2v-2h-2v2zm4 4h2v-2h-2v2zm0-4h2v-2h-2v2z"/>
+              </svg>
+            </span>
+            <div class="choice-card__text">
+              <div class="choice-card__title">شركات / مؤسسات</div>
+            </div>
+          </a>
+          <a class="choice-card" href="seeker-login.html" aria-label="باحث عن وظيفة">
+            <span class="choice-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" role="img">
+                <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-5.33 0-8 2.67-8 6v2h16v-2c0-3.33-2.67-6-8-6Z"/>
+              </svg>
+            </span>
+            <div class="choice-card__text">
+              <div class="choice-card__title">باحث عن وظيفة</div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Features section (three rounded cards) -->
+        <section class="features">
+          <div class="features__grid">
+            <article class="feature-card">
+              <div class="feature-card__icon">📞</div>
+              <div>
+                <h3 class="feature-card__title">احصل على اسرع وظيفة</h3>
+                <p class="feature-card__desc">ابدأ رحلتك المهنية الجديدة بسهولة</p>
+              </div>
+            </article>
+            <article class="feature-card">
+              <div class="feature-card__icon">🔎</div>
+              <div>
+                <h3 class="feature-card__title">الشركات تبحث عنك</h3>
+                <p class="feature-card__desc">الشركات تتصفح الملفات الشخصية وتتواصل معك مباشرة</p>
+              </div>
+            </article>
+            <article class="feature-card">
+              <div class="feature-card__icon">🪪</div>
+              <div>
+                <h3 class="feature-card__title">سجل بياناتك</h3>
+                <p class="feature-card__desc">انشئ ملفك الشخصي واضف مهارات و خبراتك</p>
+              </div>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        © <span id="y"></span> سهلات — كل الحقوق محفوظة
+        <div id="statsCounts" class="form-help" style="margin-top:6px">
+          المسجّلون: <span id="cntSeekers">0</span> باحث • <span id="cntCompanies">0</span> شركة
+        </div>
+      </div>
+    </footer>
+    <script>
+      document.getElementById('y').textContent = new Date().getFullYear();
+      // Rotating short phrases under the brand
+      const phrases = [
+        'غطِّ المكان قبل لا يوقف الشغل.',
+        'لا تضيع الوقت… لقَ الموظف اللي يناسبك الآن.',
+        'خذ الشخص المناسب، وخلي الفريق يشتغل بثقة.',
+        'كل وظيفة فاضية = فرصة لشخص جاهز.',
+        'دور بسرعة، غطّ بسرعة.',
+        'شغلك يحتاج شخص مثله؟ لقاه في سهلات.',
+        'لا تخلي الشاغر يطوّل… حلّه في دقائق.',
+        'اختصر المشوار، ولقَ الشخص اللي يكمل فريقك.',
+        'الفريق القوي يبدأ باختيار ذكي.',
+        'شوف من الجاهز اليوم، وابدأ بكرة.',
+        'غطّ الفجوة قبل ما تكبر.',
+        'خلّ الكفاءة توصل لك بدل ما تدور عليها.',
+        'الشخص الصح في الوقت الصح = إنجاز أسرع.',
+        'لقَ موظفك الجاي في ضغطة زر.',
+        'لا تنتظر المتقدمين، شوفهم بنفسك.',
+        'غطّ نقصك بكفاءة جديدة اليوم.',
+        'خلك أول من يكتشف المواهب الجاهزة.',
+        'كل دقيقة تأخير ممكن تكلّفك إنتاج.',
+        'لا تفكر كثير… سهّلها، وابدأ التوظيف.',
+        'اكتشف، اختار، غطّي — بخطوات سهلات.'
+      ];
+      const rot = document.getElementById('rotatingText');
+      if(!rot){
+        console.warn('rotatingText element not found');
+      } else {
+      let i = 0;
+      function cycle(){
+        rot.classList.remove('show');
+        setTimeout(()=>{
+          rot.textContent = phrases[i % phrases.length];
+          i++;
+          rot.classList.add('show');
+        }, 220);
+      }
+      // initial reveal
+      setTimeout(()=>rot.classList.add('show'), 60);
+      setInterval(cycle, 2600);
+      }
+      // Footer stats: seekers and companies count
+      function safeLen(key){ try{ const a = JSON.parse(localStorage.getItem(key)||'[]'); return Array.isArray(a)? a.length : 0; }catch{ return 0; } }
+      const fmt = (n)=> (typeof n==='number'? n : 0).toLocaleString('ar-SA');
+      const sCount = safeLen('seekers');
+      const cCount = safeLen('companies');
+      const sEl = document.getElementById('cntSeekers');
+      const cEl = document.getElementById('cntCompanies');
+      if (sEl) sEl.textContent = fmt(sCount);
+      if (cEl) cEl.textContent = fmt(cCount);
+    </script>
+  </body>
+  </html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الباحث عن عمل</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>تسجيل الباحث عن عمل</h1>
+  </header>
+
+  <main>
+    <form id="jobseekerForm">
+      <label>الاسم الأول: <input type="text" name="firstName" required></label><br>
+      <label>الاسم الأب: <input type="text" name="middleName"></label><br>
+      <label>الاسم الأخير: <input type="text" name="lastName" required></label><br>
+      <label>الجنسية: <input type="text" name="nationality" required></label><br>
+      <label>رقم الهوية/الإقامة: <input type="text" name="idNumber" required></label><br>
+      <label>المدينة: <input type="text" name="city" required></label><br>
+      <label>رقم الجوال: <input type="tel" name="phone" required></label><br>
+      <label>البريد الإلكتروني: <input type="email" name="email"></label><br>
+      <label>كلمة المرور: <input type="password" name="password" required></label><br>
+      <label>صورة شخصية: <input type="file" name="photo" required></label><br>
+      <label>الشهادات والدورات: <textarea name="certificates" required></textarea></label><br>
+      <label>عن نفسك: <textarea name="about" required></textarea></label><br>
+      <label>العمر: <input type="number" name="age" required></label><br>
+      <label>الجنس: 
+        <select name="gender" required>
+          <option value="">اختر</option>
+          <option value="ذكر">ذكر</option>
+          <option value="أنثى">أنثى</option>
+        </select>
+      </label><br>
+      <label>الوظائف المطلوبة: 
+        <select name="jobs" multiple required>
+          <option>كاشير</option>
+          <option>محاسب</option>
+          <option>أمن</option>
+          <option>نادل</option>
+          <option>باريستا</option>
+          <option>أخرى</option>
+        </select>
+      </label><br>
+      <button type="submit">تسجيل</button>
+    </form>
+  </main>
+
+  <footer>
+    <p>© 2025 سهلات</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

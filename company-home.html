@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>لوحة الشركة - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .filters{display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr; gap:10px}
+    @media (max-width: 900px){.filters{grid-template-columns:1fr 1fr}}
+    @media (max-width: 560px){.filters{grid-template-columns:1fr}}
+    /* Rotating subtitle text (light, subtle) */
+  #rotatingText{display:inline-block; opacity:0; transform:translateY(6px); transition: opacity .35s ease, transform .35s ease; color:#334155; font-size:16px}
+    #rotatingText.show{opacity:1; transform:translateY(0)}
+  /* Nudge the main yellow card a bit lower under the header */
+  .company-head{margin-top:12px}
+    /* Company header: move logo to the left side */
+    .company-head .avatar-pin{right:auto; left:8px; top:6px}
+    .company-head .profile-head__info{padding-inline-end:12px; padding-inline-start:120px; text-align:right}
+    .company-head h1{font-size:22px !important; margin:2px 0 4px !important}
+    .company-head .profile-head__info .form-help{font-size:15px}
+    @media (max-width: 560px){
+      .company-head .profile-head__info{padding-inline-start:0}
+    }
+  </style>
+</head>
+<body class="center-header">
+<header class="site-header">
+  <div class="container">
+    <div class="header-stack" style="display:flex; flex-direction:column; align-items:center; gap:6px">
+      <div class="brand">سهلات</div>
+      <div class="form-help" style="margin:6px 0 0 0">
+        <span id="rotatingText" class="show">غطِّ المكان قبل لا يوقف الشغل.</span>
+      </div>
+    </div>
+  </div>
+</header>
+<main class="container">
+  <section class="yellow-card company-head">
+    <div class="profile-head" style="margin-bottom:12px">
+  <img class="avatar-pin" src="search-employee.svg" alt="أيقونة البحث عن موظف" />
+      <div class="profile-head__info">
+  <h1 style="margin:6px 0 6px; font-size:20px; color:#0b1222">ابحث عن الموظف المناسب</h1>
+        <div class="form-help" style="color:#334155">ابحث وفلتر الباحثين بحسب الوظيفة والمدينة والعمر والجنسية</div>
+        
+      </div>
+    </div>
+    <div class="filters">
+      <input id="q" placeholder="🔎 ابحث بالاسم أو المدينة أو الجنسية" />
+      <select id="fJob">
+        <option value="">الوظيفة</option>
+        <option>كاشير</option>
+        <option>محاسب</option>
+        <option>بائع</option>
+        <option>سكرتير</option>
+        <option>خدمة عملاء</option>
+        <option>حارس أمن</option>
+        <option>نادل</option>
+        <option>أيّهما أسبق</option>
+      </select>
+      <select id="fCity">
+        <option value="">المدينة</option>
+        <option>الرياض</option>
+        <option>جدة</option>
+        <option>مكة</option>
+        <option>المدينة المنورة</option>
+        <option>الدمام</option>
+        <option>الخبر</option>
+        <option>بريدة</option>
+        <option>تبوك</option>
+        <option>أبها</option>
+        <option>جازان</option>
+      </select>
+      <input id="minAge" inputmode="numeric" maxlength="2" placeholder="عمر من" />
+      <input id="maxAge" inputmode="numeric" maxlength="2" placeholder="عمر إلى" />
+    </div>
+  </section>
+
+  <section style="margin-top:14px">
+    <div id="resultsMeta" class="actions" style="justify-content:space-between; align-items:center; margin-bottom:8px">
+      <div class="form-help" id="resultsCount">النتائج: 0</div>
+      <button id="clearFilters" class="btn btn--secondary" type="button">مسح الفلاتر</button>
+    </div>
+    <div id="results" class="form-card"></div>
+  </section>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  // Gate access: require prior company access approval
+  try{
+    const ok = localStorage.getItem('companyAccessOK') === 'true';
+    if (!ok){
+      alert('الدخول للشركات يتطلب رمز دخول. سيتم تحويلك لصفحة تسجيل الدخول.');
+      window.location.href = 'company-login.html';
+    }
+  }catch{}
+  // Rotating short phrases under the brand in header (companies page)
+  (function(){
+    const phrases = [
+      'غطِّ المكان قبل لا يوقف الشغل.',
+      'لا تضيع الوقت… لقَ الموظف اللي يناسبك الآن.',
+      'خذ الشخص المناسب، وخلي الفريق يشتغل بثقة.',
+      'كل وظيفة فاضية = فرصة لشخص جاهز.',
+      'دور بسرعة، غطّ بسرعة.',
+      'شغلك يحتاج شخص مثله؟ لقاه في سهلات.',
+      'لا تخلي الشاغر يطوّل… حلّه في دقائق.',
+      'اختصر المشوار، ولقَ الشخص اللي يكمل فريقك.',
+      'الفريق القوي يبدأ باختيار ذكي.',
+      'شوف من الجاهز اليوم، وابدأ بكرة.',
+      'غطّ الفجوة قبل ما تكبر.',
+      'خلّ الكفاءة توصل لك بدل ما تدور عليها.',
+      'الشخص الصح في الوقت الصح = إنجاز أسرع.',
+      'لقَ موظفك الجاي في ضغطة زر.',
+      'لا تنتظر المتقدمين، شوفهم بنفسك.',
+      'غطّ نقصك بكفاءة جديدة اليوم.',
+      'خلك أول من يكتشف المواهب الجاهزة.',
+      'كل دقيقة تأخير ممكن تكلّفك إنتاج.',
+      'لا تفكر كثير… سهّلها، وابدأ التوظيف.',
+      'اكتشف، اختار، غطّي — بخطوات سهلات.'
+    ];
+    const rot = document.getElementById('rotatingText');
+    if(!rot) return;
+    let i = 0;
+    function cycle(){
+      rot.classList.remove('show');
+      setTimeout(()=>{
+        rot.textContent = phrases[i % phrases.length];
+        i++;
+        rot.classList.add('show');
+      }, 220);
+    }
+    setTimeout(()=>rot.classList.add('show'), 60);
+  setInterval(cycle, 6000);
+  })();
+  const results = document.getElementById('results');
+  const els = {
+    q: document.getElementById('q'),
+    job: document.getElementById('fJob'),
+    city: document.getElementById('fCity'),
+    minAge: document.getElementById('minAge'),
+    maxAge: document.getElementById('maxAge')
+  };
+  const digits = (s)=> (s||'').replace(/[^0-9]/g,'');
+  const countEl = document.getElementById('resultsCount');
+  const clearBtn = document.getElementById('clearFilters');
+  function clearFilters(){
+    els.q.value=''; els.job.value=''; els.city.value=''; els.minAge.value=''; els.maxAge.value='';
+    apply();
+  }
+  clearBtn.addEventListener('click', clearFilters);
+  function render(list){
+    if (!list || !list.length){ results.innerHTML = '<div class="form-help">لا توجد نتائج مطابقة</div>'; return; }
+    results.innerHTML = '';
+    for(const s of list){
+      const card = document.createElement('div'); card.className='card';
+      const img = document.createElement('img'); img.className='avatar'; img.src = s.photoUrl || 'jobseeker.jpg'; img.onerror = ()=>{ img.src='jobseeker-fallback.svg' };
+      const box = document.createElement('div');
+      const name = document.createElement('div'); name.style.fontWeight='800'; name.textContent = s.fullName || '';
+      const help = document.createElement('div'); help.className='form-help';
+      const bits=[]; if(s.city) bits.push(s.city); if(s.age) bits.push(s.age+' سنة'); if(s.nationality) bits.push(s.nationality);
+      help.textContent = bits.join(' • ');
+      const jobs = document.createElement('div');
+      if (Array.isArray(s.jobs)){
+        for(const j of s.jobs){ const span=document.createElement('span'); span.className='chip-gray'; span.textContent=j; jobs.appendChild(span); }
+      }
+  const actions = document.createElement('div'); actions.className='actions'; actions.style.marginTop='8px';
+  const view = document.createElement('a'); view.className='btn btn--primary'; view.textContent='عرض الملف'; view.href='seeker-view.html?id=' + encodeURIComponent(s.id||'');
+      actions.appendChild(view);
+      box.append(name, help, jobs, actions);
+      card.append(img, box); results.appendChild(card);
+    }
+  }
+  function apply(){
+    let arr=[]; try{ arr = JSON.parse(localStorage.getItem('seekers')||'[]'); }catch{}
+    // Ensure each seeker has an id (for older saved data)
+    const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 's'+Math.abs(h); };
+    let mutated = false;
+    for (const s of arr){
+      if (!s.id){ const key = s.email || s.phone || s.nationalId || s.fullName || Math.random().toString(36).slice(2); s.id = makeId(key); mutated = true; }
+    }
+    // If no seekers found, seed from active seekerProfile (registered before upsert logic)
+    if (!arr.length){
+      try{
+        const p = JSON.parse(localStorage.getItem('seekerProfile')||'{}');
+        if (p && (p.fullName || p.email || p.phone || p.nationalId)){
+          const key = p.email || p.phone || p.nationalId || p.fullName;
+          p.id = p.id || makeId(key);
+          arr = [p];
+          mutated = true;
+        }
+      }catch{}
+    }
+    if (mutated){ try{ localStorage.setItem('seekers', JSON.stringify(arr)); }catch{} }
+    const q = (els.q.value||'').trim();
+    const job = els.job.value||''; const city = els.city.value||'';
+    const min = parseInt(digits(els.minAge.value)||'-1',10); const max = parseInt(digits(els.maxAge.value)||'999',10);
+    const out = arr.filter(s=>{
+      // text query over name/city/nationality
+      if (q){ const txt=(s.fullName+' '+(s.city||'')+' '+(s.nationality||'')).toLowerCase(); if(!txt.includes(q.toLowerCase())) return false; }
+      if (job){ if (!Array.isArray(s.jobs) || !s.jobs.includes(job)) return false; }
+      if (city){ if (s.city!==city) return false; }
+      const ageNum = parseInt((s.age||'').replace(/[^0-9]/g,''),10);
+      if (!isNaN(min) && ageNum < min) return false;
+      if (!isNaN(max) && ageNum > max) return false;
+      return true;
+    });
+    // Update count and clear button state
+    if (countEl) countEl.textContent = `النتائج: ${out.length}`;
+    const filtersActive = q || job || city || (els.minAge.value||'') || (els.maxAge.value||'');
+    if (clearBtn) clearBtn.disabled = !filtersActive;
+    render(out);
+  }
+  els.q.addEventListener('input', apply);
+  els.job.addEventListener('change', apply);
+  els.city.addEventListener('change', apply);
+  els.minAge.addEventListener('input', apply);
+  els.maxAge.addEventListener('input', apply);
+  apply();
+</script>
+</body>
+</html>

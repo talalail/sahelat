@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>الشركات / المؤسسات - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="center-header">
+<header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+<main class="container">
+  <h1>الشركات / المؤسسات</h1>
+  <div class="nav" style="margin:10px 0 16px">
+    <a class="btn" href="company-register.html">+ تسجيل شركة</a>
+    <a class="btn" href="index.html">⬅️ الرئيسية</a>
+  </div>
+
+  <section class="light-card">
+    <div id="companies" class="companies-grid"></div>
+  </section>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  const container = document.getElementById('companies');
+  const companies = JSON.parse(localStorage.getItem('companies')||'[]');
+  if (!Array.isArray(companies) || companies.length===0) {
+    container.innerHTML = '<div class="form-help">لا توجد شركات مسجلة حالياً</div>';
+  } else {
+    for (const c of companies) {
+      const card = document.createElement('div');
+      card.className = 'company-card';
+      card.innerHTML = `
+        <img class="company-logo" src="${c.logo||'company-fallback.svg'}" alt="${c.name||''}">
+        <div class="company-name">${c.name||''}</div>
+      `;
+      container.appendChild(card);
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>الرئيسية (الباحث) - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="center-header">
+<header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+<main class="container">
+  <section id="emptyNotice" class="callout" style="display:none">
+    لا يوجد ملف محفوظ. من فضلك قم بإكمال التسجيل أولاً.
+    <div class="actions" style="margin-top:10px">
+      <a class="btn btn--primary" href="seeker-register.html">تسجيل باحث جديد</a>
+      <a class="btn" href="seeker-login.html">تسجيل دخول</a>
+    </div>
+  </section>
+
+  <!-- Yellow details card with black text as requested -->
+  <section id="profileCard" class="yellow-card" style="display:none">
+  <h2 class="pg-heading" style="margin-top:6px">الملف الشخصي</h2>
+    <div class="profile-head" style="margin-bottom:16px">
+      <img id="avatar" class="avatar-pin" src="jobseeker.jpg" onerror="this.src='jobseeker-fallback.svg'" alt="صورة الباحث" />
+      <button id="editPhotoBtn" type="button" class="avatar-edit-btn" title="تعديل الصورة">✏️ تعديل الصورة</button>
+      <input id="photoInput" type="file" accept="image/*" style="display:none" />
+      <div class="profile-head__info">
+  <h1 id="name" style="margin:6px 0 10px; font-size:20px; color:#0b1222">—</h1>
+      </div>
+    </div>
+
+  <div class="detail-grid" style="margin-top:18px">
+      <div class="kv"><label>الاسم الأول</label><div id="kFirst" class="val">-</div></div>
+      <div class="kv" style="display:none"><label>اسم الأب</label><div id="kMiddle" class="val">-</div></div>
+      <div class="kv"><label>اسم العائلة</label><div id="kLast" class="val">-</div></div>
+
+      <div class="kv"><label>البريد الإلكتروني</label><div id="kEmail" class="val" style="color:#0b1222">-</div></div>
+      <div class="kv"><label>الجوال</label><div id="kPhone" class="val" style="color:#0b1222">-</div></div>
+      <div class="kv"><label>كلمة المرور</label><div id="kPassword" class="val" style="color:#0b1222">-</div></div>
+
+      <div class="kv"><label>الجنسية</label><div id="kNationality" class="val" style="color:#0b1222">-</div></div>
+      <div class="kv"><label>رقم الهوية/الإقامة</label><div id="kId" class="val" style="color:#0b1222">-</div></div>
+      <div class="kv"><label>الوظائف</label><div id="kJobs" class="chips">-</div></div>
+
+      <div class="kv"><label>المدينة</label><div id="kCity" class="val" style="color:#0b1222">-</div></div>
+      <div class="kv"><label>العمر</label><div id="kAge" class="val" style="color:#0b1222">-</div></div>
+      <div class="kv"><label>نبذة</label><div id="kAbout" class="val" style="color:#0b1222">-</div></div>
+
+      <div class="kv" style="grid-column:1/-1">
+        <label>الشهادات</label>
+        <div id="kCerts" class="certs-list"></div>
+      </div>
+    </div>
+
+    <div class="nav" style="margin-top:14px">
+      <a class="btn" href="seeker-settings.html">⚙️ تعديل البيانات</a>
+    </div>
+  </section>
+
+  <section class="companies-section">
+    <h2 class="section-title">الشركات / المؤسسات</h2>
+    <div id="companies" class="companies-grid"></div>
+  </section>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  const p = JSON.parse(localStorage.getItem('seekerProfile')||'{}');
+  if (!p || !p.fullName){
+    document.getElementById('emptyNotice').style.display = '';
+  } else {
+  document.getElementById('profileCard').style.display = '';
+  // Header: just full name
+  document.getElementById('name').textContent = p.fullName;
+  if (p.photoUrl) document.getElementById('avatar').src = p.photoUrl;
+    // Fields
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = (val && String(val).trim()) || '-'; };
+    set('kFirst', p.firstName);
+    set('kMiddle', p.middleName);
+    set('kLast', p.lastName);
+    set('kEmail', p.email);
+    set('kPhone', p.phone);
+    set('kPassword', p.password);
+    set('kNationality', p.nationality);
+    set('kId', p.nationalId);
+    set('kCity', p.city);
+    set('kAge', p.age || (p.dob ? '' : '-'));
+    set('kAbout', p.about);
+    // Jobs chips
+    const jobsC = document.getElementById('kJobs');
+    jobsC.innerHTML = '';
+    if (Array.isArray(p.jobs) && p.jobs.length){
+      for(const j of p.jobs){
+        const s = document.createElement('span'); s.className = 'chip-gray'; s.textContent = j; jobsC.appendChild(s);
+      }
+    } else { jobsC.textContent = '-'; }
+    // Certificates
+    const certsC = document.getElementById('kCerts');
+    if (Array.isArray(p.certificates) && p.certificates.length){
+      certsC.innerHTML = '';
+      for(const n of p.certificates){
+        const d = document.createElement('span'); d.className = 'file'; d.textContent = n; certsC.appendChild(d);
+      }
+    } else { certsC.innerHTML = '<span class="form-help">-</span>'; }
+  }
+
+  // Companies list
+  const container = document.getElementById('companies');
+  const companies = JSON.parse(localStorage.getItem('companies')||'[]');
+  if (!Array.isArray(companies) || companies.length===0) {
+    container.innerHTML = '<div class="form-help">لا توجد شركات مسجلة حالياً</div>';
+  } else {
+    for (const c of companies) {
+      const card = document.createElement('div');
+      card.className = 'company-card';
+      card.innerHTML = `
+        <img class="company-logo" src="${c.logo||'company-fallback.svg'}" alt="${c.name||''}">
+        <div class="company-name">${c.name||''}</div>
+      `;
+      container.appendChild(card);
+    }
+  }
+
+  // Edit photo flow
+  const editBtn = document.getElementById('editPhotoBtn');
+  const fileInput = document.getElementById('photoInput');
+  editBtn.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', async ()=>{
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    const dataUrl = await new Promise((resolve)=>{ const fr = new FileReader(); fr.onload = ()=>resolve(fr.result||''); fr.readAsDataURL(file); });
+    const prof = JSON.parse(localStorage.getItem('seekerProfile')||'{}');
+    prof.photoUrl = dataUrl;
+    try{ localStorage.setItem('seekerProfile', JSON.stringify(prof)); }catch{}
+    document.getElementById('avatar').src = dataUrl;
+    fileInput.value = '';
+  });
+</script>
+</body>
+</html>

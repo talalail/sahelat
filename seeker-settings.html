@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>إعدادات الباحث - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="center-header">
+<header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+<main class="container">
+  <h1>إعدادات الباحث</h1>
+  <form class="form-card" id="settingsForm">
+    <div class="form-grid">
+      <div class="field"><label for="firstName">الاسم الأول</label><input id="firstName" /></div>
+      <div class="field"><label for="lastName">اسم العائلة</label><input id="lastName" /></div>
+
+      <div class="field"><label for="email">البريد الإلكتروني</label><input id="email" type="email" /></div>
+      <div class="field"><label for="phone">الجوال</label><input id="phone" placeholder="05xxxxxxxx" /></div>
+
+      <div class="field">
+        <label for="password">كلمة المرور</label>
+        <div style="display:flex; gap:8px; align-items:center">
+          <input id="password" type="password" style="flex:1" />
+          <button id="togglePwd" type="button" class="btn btn--secondary" title="إظهار/إخفاء">👁️</button>
+        </div>
+      </div>
+
+      <div class="field"><label for="nationality">الجنسية</label><input id="nationality" /></div>
+      <div class="field"><label for="nationalId">رقم الهوية/الإقامة</label><input id="nationalId" /></div>
+
+      <div class="field" style="grid-column:1/-1">
+        <label>الوظائف (حد أقصى: اختيارين)</label>
+        <div id="jobsGroup" class="jobs-group">
+          <label class="check"><input type="checkbox" name="job" value="كاشير" /> <span>كاشير</span></label>
+          <label class="check"><input type="checkbox" name="job" value="محاسب" /> <span>محاسب</span></label>
+          <label class="check"><input type="checkbox" name="job" value="بائع" /> <span>بائع</span></label>
+          <label class="check"><input type="checkbox" name="job" value="سكرتير" /> <span>سكرتير</span></label>
+          <label class="check"><input type="checkbox" name="job" value="خدمة عملاء" /> <span>خدمة عملاء</span></label>
+          <label class="check"><input type="checkbox" name="job" value="حارس أمن" /> <span>حارس أمن</span></label>
+          <label class="check"><input type="checkbox" name="job" value="نادل" /> <span>نادل</span></label>
+          <label class="check"><input type="checkbox" name="job" value="أيّهما أسبق" /> <span>أيّهما أسبق</span></label>
+        </div>
+        <div class="form-help">المختار: <span id="jobsCount">0</span>/2</div>
+      </div>
+
+      <div class="field">
+        <label for="city">المدينة</label>
+        <select id="city">
+          <option>الرياض</option>
+          <option>جدة</option>
+          <option>مكة</option>
+          <option>المدينة المنورة</option>
+          <option>الدمام</option>
+          <option>الخبر</option>
+          <option>بريدة</option>
+          <option>تبوك</option>
+          <option>أبها</option>
+          <option>جازان</option>
+        </select>
+      </div>
+
+      <div class="field"><label for="age">العمر</label><input id="age" inputmode="numeric" maxlength="2" placeholder="مثال: 25" /></div>
+
+      <div class="field" style="grid-column:1/-1"><label for="about">نبذة</label><textarea id="about"></textarea></div>
+
+      <div class="field" style="grid-column:1/-1">
+        <label>الشهادات والدورات</label>
+        <input id="certsInput" type="file" multiple />
+        <div class="form-help">يمكن الإضافة أو الحذف — الحالي: <span id="certsCount">0</span></div>
+        <ul id="certList" class="file-list"></ul>
+      </div>
+    </div>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn btn--primary" type="submit">حفظ</button>
+      <a class="btn" href="seeker-home.html">⬅️ رجوع</a>
+      <button id="clearData" class="btn" type="button">🗑️ مسح بياناتي</button>
+    </div>
+  </form>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  const p = JSON.parse(localStorage.getItem('seekerProfile')||'{}');
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v||''; };
+  setVal('firstName', p.firstName);
+  setVal('lastName', p.lastName);
+  setVal('email', p.email);
+  setVal('phone', p.phone);
+  setVal('password', p.password);
+  setVal('nationality', p.nationality);
+  setVal('nationalId', p.nationalId);
+  setVal('city', p.city);
+  setVal('age', p.age);
+  setVal('about', p.about);
+  // Prefill jobs
+  const jobsGroup = document.getElementById('jobsGroup');
+  const jobsCount = document.getElementById('jobsCount');
+  const preJobs = Array.isArray(p.jobs) ? new Set(p.jobs) : new Set();
+  jobsGroup.querySelectorAll('input[name="job"]').forEach(cb => { if (preJobs.has(cb.value)) cb.checked = true; });
+  const updateJobsCount = () => { jobsCount.textContent = String(jobsGroup.querySelectorAll('input[name="job"]:checked').length); };
+  jobsGroup.addEventListener('change', (e)=>{
+    if (e.target && e.target.name === 'job'){
+      const checked = jobsGroup.querySelectorAll('input[name="job"]:checked');
+      if (checked.length > 2){ e.target.checked = false; alert('يمكن اختيار وظيفتين فقط'); }
+      updateJobsCount();
+    }
+  });
+  updateJobsCount();
+  // Age input digits only
+  document.getElementById('age').addEventListener('input', (ev)=>{ ev.target.value = (ev.target.value||'').replace(/[^0-9]/g,'').slice(0,2); });
+  // Password eye toggle
+  document.getElementById('togglePwd').addEventListener('click', ()=>{
+    const input = document.getElementById('password');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+  // Certificates
+  const certsInput = document.getElementById('certsInput');
+  const certList = document.getElementById('certList');
+  const certsCount = document.getElementById('certsCount');
+  const certs = new Map();
+  function renderCerts(){
+    certList.innerHTML='';
+    for(const [key, name] of certs){
+      const li = document.createElement('li'); li.className='file-item';
+      const span = document.createElement('span'); span.textContent = name;
+      const btn = document.createElement('button'); btn.type='button'; btn.className='btn btn--secondary file-remove'; btn.textContent='حذف';
+      btn.addEventListener('click', ()=>{ certs.delete(key); renderCerts(); });
+      li.append(span, btn); certList.appendChild(li);
+    }
+    certsCount.textContent = String(certs.size);
+  }
+  // Prefill from p.certificates (names only)
+  if (Array.isArray(p.certificates)){
+    for(const n of p.certificates){ const k = `${n}|${Math.random()}`; certs.set(k, n); }
+    renderCerts();
+  }
+  certsInput.addEventListener('change', ()=>{
+    const files = Array.from(certsInput.files||[]);
+    for(const f of files){ const k = `${f.name}|${f.size}|${f.lastModified}`; if(!certs.has(k)) certs.set(k, f.name); }
+    certsInput.value = ''; renderCerts();
+  });
+
+  document.getElementById('settingsForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    p.firstName = document.getElementById('firstName').value.trim();
+    p.lastName = document.getElementById('lastName').value.trim();
+    p.email = document.getElementById('email').value.trim();
+    p.phone = document.getElementById('phone').value.trim();
+    p.password = document.getElementById('password').value;
+    p.nationality = document.getElementById('nationality').value.trim();
+    p.nationalId = document.getElementById('nationalId').value.trim();
+    p.city = document.getElementById('city').value;
+    p.age = document.getElementById('age').value.trim();
+    p.about = document.getElementById('about').value.trim();
+    // Jobs
+    p.jobs = Array.from(document.querySelectorAll('input[name="job"]:checked')).map(i=>i.value);
+    // Certs
+    p.certificates = Array.from(certs.values());
+    p.fullName = `${p.firstName||''} ${p.lastName||''}`.trim();
+    try {
+      // Upsert into global seekers for company browsing and preserve id
+      const key = p.email || p.phone || p.nationalId || p.fullName;
+      let seekers = [];
+      try { seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); } catch {}
+      const idx = seekers.findIndex(s => (s.email||s.phone||s.nationalId||s.fullName) === key);
+      const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 's'+Math.abs(h); };
+      if (idx >= 0) { p.id = seekers[idx].id || makeId(key); seekers[idx] = p; }
+      else { p.id = makeId(key); seekers.push(p); }
+      localStorage.setItem('seekers', JSON.stringify(seekers));
+      localStorage.setItem('seekerProfile', JSON.stringify(p));
+    } catch {}
+    alert('تم الحفظ');
+    window.location.href = 'seeker-home.html';
+  });
+  document.getElementById('clearData').addEventListener('click', ()=>{
+    if(confirm('هل تريد مسح بياناتك المخزنة على هذا المتصفح؟')){
+      try{ localStorage.removeItem('seekerProfile'); }catch{}
+      alert('تم المسح');
+      window.location.href = 'seeker-home.html';
+    }
+  });
+</script>
+</body>
+</html>

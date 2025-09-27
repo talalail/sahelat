@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ملفي الشخصي</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>ملفي الشخصي</h1>
+  </header>
+
+  <main class="form-container">
+    <form id="profileForm">
+      <input required name="name" placeholder="الاسم الكامل">
+      <input name="middleName" placeholder="اسم الأب (اختياري)">
+      <input required name="lastName" placeholder="الاسم الأخير">
+      <input required name="nationality" placeholder="الجنسية">
+      <input required name="idNumber" placeholder="رقم الهوية/الإقامة">
+      <input required name="city" placeholder="المدينة">
+      <input name="phone" placeholder="رقم الجوال">
+      <input name="email" type="email" placeholder="البريد الإلكتروني">
+      <input required name="password" type="password" placeholder="كلمة المرور">
+      <input required name="certificates" placeholder="الشهادات والدورات">
+      <textarea required name="about" placeholder="نبذة عن نفسك"></textarea>
+      <input required name="age" type="number" placeholder="العمر">
+      <select required name="gender">
+        <option value="">اختر الجنس</option>
+        <option>ذكر</option>
+        <option>أنثى</option>
+      </select>
+      <label>الوظائف (اختر أكثر من واحد عند الحاجة):</label>
+      <select required name="jobs" multiple>
+        <option>كاشير</option>
+        <option>محاسب</option>
+        <option>أمن</option>
+        <option>نادل</option>
+        <option>باريستا</option>
+        <option>أخرى</option>
+      </select>
+      <button class="btn" type="submit">تحديث البيانات</button>
+    </form>
+  </main>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

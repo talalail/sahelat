@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تسجيل دخول الشركة - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+<main class="container">
+  <h1>تسجيل دخول الشركة</h1>
+  <div class="form-card">
+    <form id="companyLoginForm">
+      <div class="field"><label>رقم الجوال أو البريد</label><input required /></div>
+      <div class="field"><label>كلمة المرور</label><input type="password" required /></div>
+  <div class="field"><label>كود سهلات</label><input id="accessCode" required type="password" maxlength="8" autocomplete="off" /></div>
+      <div class="actions" style="margin-top:12px">
+        <button class="btn btn--primary" type="submit">دخول</button>
+        <a class="btn btn--secondary" href="company-register.html">تسجيل جديد</a>
+        <a class="btn" href="index.html">⬅️ رجوع</a>
+      </div>
+    </form>
+  </div>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  document.getElementById('companyLoginForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+  const code = (document.getElementById('accessCode')?.value||'').trim();
+  if (code !== '951753##'){ alert('كود سهلات غير صحيح'); return; }
+    try { localStorage.setItem('companyAccessOK', 'true'); } catch {}
+    window.location.href = 'company-home.html';
+  });
+</script>
+</body>
+</html>

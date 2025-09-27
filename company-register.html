@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تسجيل شركة جديدة - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+<main class="container">
+  <h1>تسجيل شركة جديدة</h1>
+  <form id="companyForm" class="form-card">
+    <div class="form-grid">
+      <div class="field" style="grid-column:1/-1">
+        <label for="accessCode">كود سهلات</label>
+        <input id="accessCode" type="password" required pattern="^951753##$" maxlength="8" autocomplete="off" />
+      </div>
+  <div class="field"><label for="companyName">اسم الشركة</label><input id="companyName" required /></div>
+      <div class="field">
+        <label>المدينة</label>
+        <select>
+          <option>الرياض</option>
+          <option>جدة</option>
+          <option>مكة</option>
+          <option>المدينة المنورة</option>
+          <option>الدمام</option>
+          <option>الخبر</option>
+        </select>
+      </div>
+      <div class="field"><label>رقم الجوال</label><input placeholder="05xxxxxxxx" /></div>
+      <div class="field"><label>البريد الإلكتروني</label><input type="email" /></div>
+      <div class="field"><label>كلمة المرور</label><input type="password" /></div>
+      <div class="field" style="grid-column:1/-1">
+        <label><input id="showSeekers" type="checkbox" checked /> عرض بيانات الباحثين</label>
+      </div>
+    </div>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn btn--primary" type="submit">استمرار</button>
+      <a class="btn" href="company-login.html">لدي حساب</a>
+      <a class="btn" href="index.html">⬅️ رجوع</a>
+    </div>
+  </form>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  document.getElementById('companyForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+  const code = document.getElementById('accessCode').value.trim();
+  if (code !== '951753##'){ alert('كود سهلات غير صحيح'); return; }
+    const name = document.getElementById('companyName').value.trim();
+    if(!name){ alert('يرجى كتابة اسم الشركة'); return; }
+    try { localStorage.setItem('companyAccessOK', 'true'); } catch {}
+    const companies = JSON.parse(localStorage.getItem('companies')||'[]');
+    companies.push({ name, logo: 'company-fallback.svg' });
+    try { localStorage.setItem('companies', JSON.stringify(companies)); } catch {}
+    window.location.href = 'company-home.html';
+  });
+</script>
+</body>
+</html>

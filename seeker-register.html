@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تسجيل باحث جديد - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="center-header">
+<header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+<main class="container">
+  <h1>تسجيل باحث جديد</h1>
+  <form id="registerForm" class="form-card">
+    <div class="form-grid">
+      <div class="field"><label for="firstName">الاسم الأول *</label><input id="firstName" name="firstName" required /></div>
+      <div class="field"><label for="middleName">اسم الأب</label><input id="middleName" name="middleName" /></div>
+      <div class="field"><label for="lastName">الاسم الأخير *</label><input id="lastName" name="lastName" required /></div>
+      <div class="field"><label for="nationality">الجنسية</label><input id="nationality" name="nationality" /></div>
+      <div class="field"><label for="nationalId">رقم الهوية/الإقامة</label><input id="nationalId" name="nationalId" /></div>
+      <div class="field">
+        <label>المدينة</label>
+  <select id="city" name="city">
+          <option>الرياض</option>
+          <option>جدة</option>
+          <option>مكة</option>
+          <option>المدينة المنورة</option>
+          <option>الدمام</option>
+          <option>الخبر</option>
+          <option>بريدة</option>
+          <option>تبوك</option>
+          <option>أبها</option>
+          <option>جازان</option>
+        </select>
+      </div>
+  <div class="field"><label for="phone">رقم الجوال</label><input id="phone" name="phone" placeholder="05xxxxxxxx" /></div>
+  <div class="field"><label for="email">البريد الإلكتروني</label><input id="email" name="email" type="email" /></div>
+  <div class="field"><label for="password">كلمة السر</label><input id="password" name="password" type="password" /></div>
+      <div class="field">
+        <label>العمر أو تاريخ الميلاد</label>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+          <label style="display:flex; align-items:center; gap:6px"><input type="radio" name="ageMode" value="age" checked /> عمر (رقمين)</label>
+          <label style="display:flex; align-items:center; gap:6px"><input type="radio" name="ageMode" value="dob" /> تاريخ ميلاد</label>
+        </div>
+        <div id="ageFields" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px">
+          <input id="ageInput" inputmode="numeric" pattern="\\d{2}" maxlength="2" placeholder="مثال: 26" />
+          <input id="dobInput" type="date" style="display:none" />
+        </div>
+        <div class="form-help">اختر إدخال العمر برقمين أو اختر تاريخ الميلاد الكامل</div>
+      </div>
+      <div class="field">
+        <label>الجنس</label>
+  <select id="gender" name="gender">
+          <option>ذكر</option>
+          <option>أنثى</option>
+        </select>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+  <label for="photo">صورة شخصية</label>
+  <input id="photo" name="photo" type="file" accept="image/*" />
+        <div class="form-help">ارفع صورة واضحة بصيغة JPG أو PNG</div>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+        <label>الشهادات والدورات</label>
+        <input id="certsInput" type="file" multiple />
+        <div class="form-help">يمكن رفع عدد كبير من الملفات (أكثر من 10) ويمكن الإضافة على دفعات — المختارة: <span id="certsCount">0</span></div>
+        <ul id="certList" class="file-list"></ul>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+        <label>الوظيفة المرغوبة (حد أقصى: اختيارين)</label>
+        <div id="jobsGroup" class="jobs-group">
+          <label class="check"><input type="checkbox" name="job" value="كاشير" /> <span>كاشير</span></label>
+          <label class="check"><input type="checkbox" name="job" value="محاسب" /> <span>محاسب</span></label>
+          <label class="check"><input type="checkbox" name="job" value="بائع" /> <span>بائع</span></label>
+          <label class="check"><input type="checkbox" name="job" value="سكرتير" /> <span>سكرتير</span></label>
+          <label class="check"><input type="checkbox" name="job" value="خدمة عملاء" /> <span>خدمة عملاء</span></label>
+          <label class="check"><input type="checkbox" name="job" value="حارس أمن" /> <span>حارس أمن</span></label>
+          <label class="check"><input type="checkbox" name="job" value="نادل" /> <span>نادل</span></label>
+          <label class="check"><input type="checkbox" name="job" value="أيّهما أسبق" /> <span>أيّهما أسبق</span></label>
+        </div>
+        <div class="form-help">المسموح: <span id="jobsCount">0</span>/2 وظائف مختارة</div>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+  <label for="about">نبذة عن نفسك</label>
+  <textarea id="about" name="about" placeholder="اكتب نبذة مختصرة…"></textarea>
+      </div>
+    </div>
+    <div class="actions" style="margin-top:12px">
+  <button class="btn btn--primary" type="submit">استمرار</button>
+      <a class="btn" href="seeker-login.html">لدي حساب</a>
+      <a class="btn" href="index.html">⬅️ رجوع</a>
+    </div>
+  </form>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  // Toggle age vs dob fields
+  const ageInput = document.getElementById('ageInput');
+  const dobInput = document.getElementById('dobInput');
+  document.querySelectorAll('input[name="ageMode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      if (r.value === 'age' && r.checked) {
+        ageInput.style.display = '';
+        dobInput.style.display = 'none';
+      } else if (r.value === 'dob' && r.checked) {
+        ageInput.style.display = 'none';
+        dobInput.style.display = '';
+      }
+    });
+  });
+  // Enforce max two selections for jobs (checkboxes)
+  const jobsGroup = document.getElementById('jobsGroup');
+  const jobsCount = document.getElementById('jobsCount');
+  const updateJobsCount = () => {
+    const n = jobsGroup.querySelectorAll('input[name="job"]:checked').length;
+    jobsCount.textContent = n.toString();
+  };
+  jobsGroup.addEventListener('change', (e) => {
+    if (e.target && e.target.name === 'job') {
+      const checked = jobsGroup.querySelectorAll('input[name="job"]:checked');
+      if (checked.length > 2) {
+        e.target.checked = false;
+        alert('يمكن اختيار وظيفتين فقط');
+      }
+      updateJobsCount();
+    }
+  });
+  updateJobsCount();
+  // Age input: allow only two digits
+  ageInput.addEventListener('input', () => {
+    ageInput.value = (ageInput.value || '').replace(/[^0-9]/g, '').slice(0, 2);
+  });
+
+  // Certificates: aggregate many files (>10) with removable list
+  const certsInput = document.getElementById('certsInput');
+  const certList = document.getElementById('certList');
+  const certsCount = document.getElementById('certsCount');
+  const certs = new Map(); // key -> File
+  function renderCerts(){
+    certList.innerHTML = '';
+    for(const [key, file] of certs){
+      const li = document.createElement('li');
+      li.className = 'file-item';
+      const name = document.createElement('span');
+      name.textContent = `${file.name} (${Math.ceil(file.size/1024)}KB)`;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn--secondary file-remove';
+      btn.textContent = 'حذف';
+      btn.addEventListener('click', ()=>{ certs.delete(key); renderCerts(); });
+      li.append(name, btn);
+      certList.appendChild(li);
+    }
+    certsCount.textContent = String(certs.size);
+  }
+  certsInput.addEventListener('change', ()=>{
+    const files = Array.from(certsInput.files || []);
+    for(const f of files){
+      const k = `${f.name}|${f.size}|${f.lastModified}`;
+      if(!certs.has(k)) certs.set(k, f);
+    }
+    certsInput.value = '';
+    renderCerts();
+  });
+
+  // Save profile and go to seeker home
+  const form = document.getElementById('registerForm');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const getVal = (id) => (document.getElementById(id)?.value || '').trim();
+    const ageMode = document.querySelector('input[name="ageMode"]:checked')?.value || 'age';
+    // Collect jobs (max two already enforced)
+    const jobs = Array.from(document.querySelectorAll('input[name="job"]:checked')).map(i=>i.value);
+    // Collect certificate names only for demo display
+    const certificateNames = Array.from(certs.values()).map(f => f.name);
+    // Optional photo as data URL
+    let photoDataUrl = '';
+    const file = document.getElementById('photo')?.files?.[0];
+    if (file) {
+      photoDataUrl = await new Promise((resolve) => { const fr = new FileReader(); fr.onload = () => resolve(fr.result || ''); fr.readAsDataURL(file); });
+    }
+    const profile = {
+      firstName: getVal('firstName'),
+      middleName: getVal('middleName'),
+      lastName: getVal('lastName'),
+      fullName: `${getVal('firstName')} ${getVal('lastName')}`.trim(),
+      nationality: getVal('nationality'),
+      nationalId: getVal('nationalId'),
+      city: getVal('city'),
+      phone: getVal('phone'),
+      email: getVal('email'),
+      password: getVal('password'),
+      gender: getVal('gender'),
+      about: getVal('about'),
+      age: ageMode==='age' ? getVal('ageInput') : '',
+      dob: ageMode==='dob' ? getVal('dobInput') : '',
+      jobs,
+      certificates: certificateNames,
+      photoUrl: photoDataUrl || 'jobseeker.jpg'
+    };
+    try {
+      // helper to create a stable id from a key
+      const makeId = (keyStr) => {
+        let h = 0; for (const ch of (keyStr||'')) { h = ((h<<5)-h) + ch.charCodeAt(0); h |= 0; }
+        return 's' + Math.abs(h);
+      };
+      // Upsert into global seekers list for company browsing
+      const key = profile.email || profile.phone || profile.nationalId || profile.fullName;
+      let seekers = [];
+      try { seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); } catch {}
+      const i = seekers.findIndex(s => (s.email||s.phone||s.nationalId||s.fullName) === key);
+      if (i >= 0) {
+        // preserve id if exists
+        profile.id = seekers[i].id || makeId(key);
+        seekers[i] = profile;
+      } else {
+        profile.id = makeId(key);
+        seekers.push(profile);
+      }
+      // Save active profile too
+      localStorage.setItem('seekerProfile', JSON.stringify(profile));
+      localStorage.setItem('seekers', JSON.stringify(seekers));
+    } catch {}
+    window.location.href = 'seeker-home.html';
+  });
+</script>
+</body>
+</html>

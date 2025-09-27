@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ملف الباحث - عرض للشركة - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .detail-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:24px}
+    @media (max-width: 900px){.detail-grid{grid-template-columns:1fr 1fr}}
+    @media (max-width: 560px){.detail-grid{grid-template-columns:1fr}}
+    .kv{display:flex; flex-direction:column; gap:6px}
+    .kv label{color:#94a3b8; font-weight:700}
+    .kv .val{color:#e2e8f0}
+    .chip{display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; background:rgba(250,204,21,0.1); border:1px solid rgba(250,204,21,0.3); color:#fde68a; margin-inline-start:6px}
+    .certs-list{display:flex; flex-wrap:wrap; gap:8px}
+    .certs-list .file{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--border); border-radius:10px; color:var(--text); background:rgba(255,255,255,0.04)}
+  </style>
+  
+</head>
+<body class="center-header">
+<header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+<main class="container">
+  <h1>ملف الباحث (عرض للشركة)</h1>
+
+  <div class="form-card">
+    <div class="card" style="margin-bottom:18px">
+      <img id="vAvatar" class="avatar" src="jobseeker.jpg" onerror="this.src='jobseeker-fallback.svg'" alt="صورة الباحث" />
+      <div>
+        <div id="vName" style="font-weight:800; font-size:18px">—</div>
+        <div id="vMeta" class="form-help">—</div>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="kv"><label>الاسم الأول</label><div id="kFirst" class="val">-</div></div>
+      <div class="kv"><label>اسم الأب</label><div id="kMiddle" class="val">-</div></div>
+      <div class="kv"><label>اسم العائلة</label><div id="kLast" class="val">-</div></div>
+
+      <div class="kv"><label>البريد الإلكتروني</label><div id="kEmail" class="val">-</div></div>
+      <div class="kv"><label>الجوال</label><div id="kPhone" class="val">-</div></div>
+
+      <div class="kv"><label>الجنسية</label><div id="kNationality" class="val">-</div></div>
+  <div class="kv"><label>رقم الهوية/الإقامة</label><div id="kId" class="val" title="اضغط لإظهار رقم الهوية" style="cursor:pointer" role="button" tabindex="0">-</div></div>
+      <div class="kv"><label>الوظائف</label><div id="kJobs" class="val">-</div></div>
+
+      <div class="kv"><label>المدينة</label><div id="kCity" class="val">-</div></div>
+      <div class="kv"><label>العمر</label><div id="kAge" class="val">-</div></div>
+      <div class="kv"><label>نبذة</label><div id="kAbout" class="val">-</div></div>
+
+      <div class="kv" style="grid-column:1/-1">
+        <label>الشهادات</label>
+        <div id="kCerts" class="certs-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <a class="btn" href="company-home.html">⬅️ رجوع للقائمة</a>
+  </div>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  // find seeker by id from query param, fallback to active profile
+  const params = new URLSearchParams(location.search);
+  const idQ = params.get('id');
+  let p = null;
+  try{
+    const list = JSON.parse(localStorage.getItem('seekers')||'[]');
+    if (idQ){ p = list.find(s=> String(s.id||'') === String(idQ)); }
+  }catch{}
+  if(!p){ try{ p = JSON.parse(localStorage.getItem('seekerProfile')||'{}'); }catch{ p = {}; } }
+
+  if (p.photoUrl) document.getElementById('vAvatar').src = p.photoUrl;
+  document.getElementById('vName').textContent = p.fullName || '—';
+  const meta = [];
+  if (p.nationality) meta.push(p.nationality);
+  if (p.city) meta.push(p.city);
+  if (p.age) meta.push(p.age + ' سنة');
+  document.getElementById('vMeta').textContent = meta.join(' • ') || '—';
+
+  // Fill fields
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = (val && String(val).trim()) || '-'; };
+  set('kFirst', p.firstName);
+  set('kMiddle', p.middleName);
+  set('kLast', p.lastName);
+  set('kEmail', p.email);
+  set('kPhone', p.phone);
+  set('kNationality', p.nationality);
+  // National ID: hidden by default, click to reveal
+  (function(){
+    const idEl = document.getElementById('kId');
+    const idVal = (p.nationalId || '').toString().trim();
+    if (!idVal){ idEl.textContent='-'; idEl.style.cursor='default'; idEl.removeAttribute('role'); idEl.removeAttribute('tabindex'); idEl.title=''; return; }
+    let shown = false;
+    const mask = '•'.repeat(Math.min(idVal.length || 10, 12));
+    function render(){ idEl.textContent = shown ? idVal : mask; }
+    function toggle(){ shown = !shown; render(); }
+    idEl.addEventListener('click', toggle);
+    idEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); }});
+    render();
+  })();
+  set('kCity', p.city);
+  set('kAge', p.age || (p.dob ? '' : '-'));
+  set('kAbout', p.about);
+  // Jobs chips
+  const jobsC = document.getElementById('kJobs');
+  jobsC.innerHTML = '';
+  if (Array.isArray(p.jobs) && p.jobs.length){
+    for(const j of p.jobs){
+      const s = document.createElement('span'); s.className = 'chip'; s.textContent = j; jobsC.appendChild(s);
+    }
+  } else { jobsC.textContent = '-'; }
+  // Certificates
+  const certsC = document.getElementById('kCerts');
+  if (Array.isArray(p.certificates) && p.certificates.length){
+    for(const n of p.certificates){
+      const d = document.createElement('span'); d.className = 'file'; d.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>` + n;
+      certsC.appendChild(d);
+    }
+  } else {
+    certsC.innerHTML = '<span class="form-help">-</span>'
+  }
+</script>
+</body>
+</html>
