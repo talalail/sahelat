@@ -31,8 +31,9 @@
     for (const c of companies) {
       const card = document.createElement('div');
       card.className = 'company-card';
+      const logoSrc = c.logo || 'company-fallback.svg';
       card.innerHTML = `
-        <img class="company-logo" src="${c.logo||'company-fallback.svg'}" alt="${c.name||''}">
+        <img class="company-logo" src="${logoSrc}" alt="${c.name||''}" onerror="this.onerror=null;this.src='company-fallback.svg'">
         <div class="company-name">${c.name||''}</div>
       `;
       container.appendChild(card);

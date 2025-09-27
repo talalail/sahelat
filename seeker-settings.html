@@ -170,16 +170,22 @@
   p.certificates = Array.from(certs.values());
     p.fullName = `${p.firstName||''} ${p.lastName||''}`.trim();
     try {
+      if (!p.phone && !p.email){ alert('يرجى إدخال رقم الجوال أو البريد الإلكتروني'); return; }
       // Upsert into global seekers for company browsing and preserve id
       const key = p.email || p.phone || p.nationalId || p.fullName;
       let seekers = [];
       try { seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); } catch {}
-      const idx = seekers.findIndex(s => (s.email||s.phone||s.nationalId||s.fullName) === key);
+      // enforce uniqueness across other profiles
+      const norm = (s)=> (s||'').trim().toLowerCase();
+      const dupe = seekers.find(x=> x && x.id!==p.id && ((p.phone && norm(x.phone)===norm(p.phone)) || (p.email && norm(x.email)===norm(p.email)) || (p.nationalId && norm(x.nationalId)===norm(p.nationalId))));
+      if (dupe){ alert('هذا الرقم أو البريد أو الهوية مسجّل مسبقاً'); return; }
+      const idx = seekers.findIndex(s => s && s.id === p.id);
       const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 's'+Math.abs(h); };
       if (idx >= 0) { p.id = seekers[idx].id || makeId(key); seekers[idx] = p; }
       else { p.id = makeId(key); seekers.push(p); }
       localStorage.setItem('seekers', JSON.stringify(seekers));
       localStorage.setItem('seekerProfile', JSON.stringify(p));
+      if (p.id) localStorage.setItem('currentSeekerId', p.id);
     } catch {}
     alert('تم الحفظ');
     window.location.href = 'seeker-home.html';

@@ -33,6 +33,14 @@
       <div class="field"><label for="companyEmail">البريد الإلكتروني</label><input id="companyEmail" type="email" /></div>
       <div class="field"><label for="companyPass">كلمة المرور</label><input id="companyPass" type="password" /></div>
       <div class="field" style="grid-column:1/-1">
+        <label for="companyLogo">شعار/لوقو الشركة (صورة) *</label>
+        <input id="companyLogo" type="file" accept="image/*" required />
+        <div style="display:flex; align-items:center; gap:10px; margin-top:8px">
+          <img id="logoPreview" src="company-fallback.svg" alt="شعار الشركة" style="width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid #e5e7eb" onerror="this.src='company-fallback.svg'" />
+          <div class="form-help">هذا الشعار سيظهر للباحثين ضمن قائمة الشركات</div>
+        </div>
+      </div>
+      <div class="field" style="grid-column:1/-1">
         <label><input id="showSeekers" type="checkbox" checked /> عرض بيانات الباحثين</label>
       </div>
     </div>
@@ -46,7 +54,18 @@
 <footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
-  document.getElementById('companyForm').addEventListener('submit', (e)=>{
+  const logoInput = document.getElementById('companyLogo');
+  const logoPreview = document.getElementById('logoPreview');
+  if (logoInput){
+    logoInput.addEventListener('change', ()=>{
+      const f = logoInput.files && logoInput.files[0];
+      if (!f) return;
+      const fr = new FileReader();
+      fr.onload = ()=>{ logoPreview.src = fr.result||''; };
+      fr.readAsDataURL(f);
+    });
+  }
+  document.getElementById('companyForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
   const code = document.getElementById('accessCode').value.trim();
   if (code !== '951753##'){ alert('كود سهلات غير صحيح'); return; }
@@ -62,9 +81,16 @@
     const norm = (s)=> (s||'').trim().toLowerCase();
     const exists = companies.some(c=> (phone && norm(c.phone)===norm(phone)) || (email && norm(c.email)===norm(email)) );
     if (exists){ alert('هذا الرقم أو البريد مسجّل مسبقاً'); return; }
-    const company = { name, city: cityEl ? cityEl.value : '', phone, email, password, logo: 'company-fallback.svg' };
+    // Require logo and convert to data URL
+    const file = logoInput && logoInput.files && logoInput.files[0];
+    if (!file){ alert('الرجاء رفع شعار/لوقو للشركة'); return; }
+    const logoDataUrl = await new Promise((res)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result||''); fr.readAsDataURL(file); });
+    const company = { name, city: cityEl ? cityEl.value : '', phone, email, password, logo: logoDataUrl };
     companies.push(company);
-    try { localStorage.setItem('companies', JSON.stringify(companies)); } catch {}
+    try {
+      localStorage.setItem('companies', JSON.stringify(companies));
+      localStorage.setItem('currentCompany', JSON.stringify(company));
+    } catch {}
     window.location.href = 'company-home.html';
   });
 </script>

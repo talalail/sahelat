@@ -43,9 +43,13 @@
     try{ seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); }catch{}
     var norm = function(s){ return (s||'').trim().toLowerCase(); };
     var found = seekers.find(function(s){ return norm(s.phone)===norm(loginId) || norm(s.email)===norm(loginId); });
-    if (!found){ alert('الحساب غير موجود. يرجى التسجيل أولاً.'); return; }
-    if (found.password && pass && found.password !== pass){ alert('كلمة المرور غير صحيحة'); return; }
-    try{ localStorage.setItem('seekerProfile', JSON.stringify(found)); }catch{}
+  if (!found){ alert('الحساب غير موجود. يرجى التسجيل أولاً.'); return; }
+  if (!found.password){ alert('لا توجد كلمة مرور محفوظة لهذا الحساب. يرجى التسجيل من جديد.'); return; }
+  if (found.password !== pass){ alert('كلمة المرور غير صحيحة'); return; }
+    try{
+      localStorage.setItem('seekerProfile', JSON.stringify(found));
+      if (found.id) localStorage.setItem('currentSeekerId', found.id);
+    }catch{}
     window.location.href = 'seeker-home.html';
   });
 </script>

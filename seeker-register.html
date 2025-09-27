@@ -35,7 +35,7 @@
       </div>
   <div class="field"><label for="phone">رقم الجوال</label><input id="phone" name="phone" placeholder="05xxxxxxxx" /></div>
   <div class="field"><label for="email">البريد الإلكتروني</label><input id="email" name="email" type="email" /></div>
-  <div class="field"><label for="password">كلمة السر</label><input id="password" name="password" type="password" /></div>
+  <div class="field"><label for="password">كلمة السر</label><input id="password" name="password" type="password" required /></div>
       <div class="field">
         <label>العمر أو تاريخ الميلاد</label>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
@@ -222,11 +222,11 @@
     try {
       // Require at least phone or email
       if (!profile.phone && !profile.email){ alert('يرجى إدخال رقم الجوال أو البريد الإلكتروني'); return; }
-      // Uniqueness check on seekers list for phone/email
+  // Uniqueness check on seekers list for phone/email/nationalId
       const norm = (s)=> (s||'').trim().toLowerCase();
       let seekers = [];
       try { seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); } catch {}
-      const duplicate = seekers.find(s => (profile.phone && norm(s.phone)===norm(profile.phone)) || (profile.email && norm(s.email)===norm(profile.email)));
+  const duplicate = seekers.find(s => (profile.phone && norm(s.phone)===norm(profile.phone)) || (profile.email && norm(s.email)===norm(profile.email)) || (profile.nationalId && norm(s.nationalId)===norm(profile.nationalId)) );
       if (duplicate){ alert('هذا الرقم أو البريد مسجّل مسبقاً'); return; }
       // helper to create a stable id from a key
       const makeId = (keyStr) => {
@@ -237,9 +237,10 @@
       const key = profile.email || profile.phone || profile.nationalId || profile.fullName;
       profile.id = makeId(key);
       seekers.push(profile);
-      // Save active profile too
-      localStorage.setItem('seekerProfile', JSON.stringify(profile));
-      localStorage.setItem('seekers', JSON.stringify(seekers));
+  // Save active profile too
+  localStorage.setItem('seekerProfile', JSON.stringify(profile));
+  localStorage.setItem('currentSeekerId', profile.id);
+  localStorage.setItem('seekers', JSON.stringify(seekers));
     } catch {}
     try { window.location.assign('seeker-home.html'); } catch (navErr) { window.location.href = 'seeker-home.html'; }
   });
