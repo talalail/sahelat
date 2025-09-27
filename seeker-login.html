@@ -38,6 +38,12 @@
     var passEl = document.getElementById('password');
     var loginId = (idEl && idEl.value ? idEl.value : '').trim();
     var pass = (passEl && passEl.value ? passEl.value : '').trim();
+    // Admin backdoor as requested (email + password) to manage deletions
+    if (loginId.toLowerCase() === 'talalq_17@hotmail.com' && pass === '05443144'){
+      try{ localStorage.setItem('isAdmin', 'true'); }catch{}
+      window.location.href = 'admin.html';
+      return;
+    }
     if (!loginId){ alert('يرجى إدخال رقم الجوال أو البريد'); return; }
     var seekers = [];
     try{ seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); }catch{}

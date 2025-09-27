@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>لوحة الإدارة - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .admin-grid{display:grid; grid-template-columns:1fr; gap:14px}
+    .admin-actions{display:flex; gap:10px; flex-wrap:wrap}
+    .danger{border-color:#fecaca; color:#7f1d1d; background:rgba(254,226,226,.06)}
+    .list{display:flex; flex-direction:column; gap:10px}
+    .item-title{font-weight:800}
+  </style>
+</head>
+<body class="center-header">
+<header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+<main class="container">
+  <h1>لوحة الإدارة (حذف الحسابات والكيانات)</h1>
+  <div class="form-help" style="margin:-6px 0 10px">هذه الصفحة خاصة بالإدارة. يُفضّل استخدامها بحذر لأن الحذف نهائي.</div>
+
+  <div class="admin-actions" style="margin-bottom:12px">
+    <button id="adminLogout" class="btn">تسجيل خروج الإدارة</button>
+    <a class="btn" href="index.html">⬅️ رجوع</a>
+  </div>
+
+  <div class="admin-grid">
+    <section class="form-card">
+      <h3 style="margin:0 0 10px">الباحثون عن عمل <span id="seekersCount" class="form-help"></span></h3>
+      <div id="seekersList" class="list"></div>
+    </section>
+
+    <section class="form-card">
+      <h3 style="margin:0 0 10px">الشركات / المؤسسات <span id="companiesCount" class="form-help"></span></h3>
+      <div id="companiesList" class="list"></div>
+    </section>
+  </div>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  // Simple guard: require isAdmin flag
+  try {
+    if (localStorage.getItem('isAdmin') !== 'true') {
+      alert('الوصول مقيّد. يرجى تسجيل الدخول باستخدام بيانات الإدارة.');
+      window.location.href = 'seeker-login.html';
+    }
+  } catch {}
+
+  function getSeekers(){ try{ return JSON.parse(localStorage.getItem('seekers')||'[]') }catch{ return [] } }
+  function setSeekers(arr){ try{ localStorage.setItem('seekers', JSON.stringify(arr)); }catch{} }
+  function getCompanies(){ try{ return JSON.parse(localStorage.getItem('companies')||'[]') }catch{ return [] } }
+  function setCompanies(arr){ try{ localStorage.setItem('companies', JSON.stringify(arr)); }catch{} }
+
+  function render(){
+    // Seekers
+    const seekers = getSeekers();
+    const sList = document.getElementById('seekersList');
+    const sCount = document.getElementById('seekersCount');
+    sList.innerHTML = '';
+    sCount.textContent = `(العدد: ${seekers.length})`;
+    if (!seekers.length){ sList.innerHTML = '<div class="form-help">لا يوجد باحثون</div>'; }
+    else {
+      for(const s of seekers){
+        const card = document.createElement('div'); card.className='card';
+        const img = document.createElement('img'); img.className='avatar'; img.src=s.photoUrl||'jobseeker.jpg'; img.onerror=()=>{img.src='jobseeker-fallback.svg'};
+        const box = document.createElement('div');
+        const title = document.createElement('div'); title.className='item-title'; title.textContent = s.fullName || '—';
+        const meta = document.createElement('div'); meta.className='form-help'; meta.textContent = [s.city, s.phone||s.email].filter(Boolean).join(' • ');
+        const actions = document.createElement('div'); actions.className='actions'; actions.style.marginTop='8px';
+        const del = document.createElement('button'); del.className='btn danger'; del.textContent='حذف الباحث';
+        del.addEventListener('click', ()=>{
+          if (!confirm('متأكد من حذف هذا الباحث نهائياً؟')) return;
+          const arr = getSeekers();
+          const out = arr.filter(x=> !(x && x.id===s.id));
+          setSeekers(out);
+          // If deleted seeker is the active one, clear session
+          try{
+            if (localStorage.getItem('currentSeekerId') === s.id){
+              localStorage.removeItem('currentSeekerId');
+              localStorage.removeItem('seekerProfile');
+            }
+          }catch{}
+          render();
+        });
+        actions.appendChild(del);
+        box.append(title, meta, actions);
+        card.append(img, box);
+        sList.appendChild(card);
+      }
+    }
+
+    // Companies
+    const companies = getCompanies();
+    const cList = document.getElementById('companiesList');
+    const cCount = document.getElementById('companiesCount');
+    cList.innerHTML = '';
+    cCount.textContent = `(العدد: ${companies.length})`;
+    if (!companies.length){ cList.innerHTML = '<div class="form-help">لا توجد شركات</div>'; }
+    else {
+      for(const c of companies){
+        const card = document.createElement('div'); card.className='card';
+        const img = document.createElement('img'); img.className='avatar'; img.src=c.logo||'company-fallback.svg'; img.onerror=()=>{img.src='company-fallback.svg'};
+        const box = document.createElement('div');
+        const title = document.createElement('div'); title.className='item-title'; title.textContent = c.name || '—';
+        const meta = document.createElement('div'); meta.className='form-help'; meta.textContent = [c.city, c.phone||c.email].filter(Boolean).join(' • ');
+        const actions = document.createElement('div'); actions.className='actions'; actions.style.marginTop='8px';
+        const del = document.createElement('button'); del.className='btn danger'; del.textContent='حذف الشركة';
+        del.addEventListener('click', ()=>{
+          if (!confirm('متأكد من حذف هذه الشركة نهائياً؟')) return;
+          const arr = getCompanies();
+          const out = arr.filter(x=> !(x && x.id===c.id));
+          setCompanies(out);
+          // If deleted company is the current one, clear currentCompany and accessOK to avoid re-seeding
+          try{
+            const cur = JSON.parse(localStorage.getItem('currentCompany')||'null');
+            if (cur && cur.id === c.id){
+              localStorage.removeItem('currentCompany');
+              localStorage.removeItem('companyAccessOK');
+            }
+          }catch{}
+          render();
+        });
+        actions.appendChild(del);
+        box.append(title, meta, actions);
+        card.append(img, box);
+        cList.appendChild(card);
+      }
+    }
+  }
+
+  // Admin logout
+  (function(){
+    const btn = document.getElementById('adminLogout');
+    if (!btn) return;
+    btn.addEventListener('click', ()=>{
+      try{ localStorage.removeItem('isAdmin'); }catch{}
+      window.location.href = 'seeker-login.html';
+    });
+  })();
+
+  render();
+</script>
+</body>
+</html>
