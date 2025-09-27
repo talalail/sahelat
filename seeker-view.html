@@ -113,12 +113,20 @@
       const s = document.createElement('span'); s.className = 'chip'; s.textContent = j; jobsC.appendChild(s);
     }
   } else { jobsC.textContent = '-'; }
-  // Certificates
+  // Certificates (support data URLs created at registration)
   const certsC = document.getElementById('kCerts');
+  certsC.innerHTML = '';
   if (Array.isArray(p.certificates) && p.certificates.length){
-    for(const n of p.certificates){
-      const d = document.createElement('span'); d.className = 'file'; d.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>` + n;
-      certsC.appendChild(d);
+    for(const c of p.certificates){
+      var name = (c && typeof c==='object' && c.name) ? c.name : (typeof c==='string' ? c : 'ملف');
+      var href = (c && typeof c==='object' && c.dataUrl) ? c.dataUrl : '';
+      var el;
+      if (href){
+        el = document.createElement('a'); el.href = href; el.target = '_blank'; el.rel='noopener'; el.className='file'; el.textContent = name;
+      } else {
+        el = document.createElement('span'); el.className='file'; el.textContent = name;
+      }
+      certsC.appendChild(el);
     }
   } else {
     certsC.innerHTML = '<span class="form-help">-</span>'

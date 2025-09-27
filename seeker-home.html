@@ -6,6 +6,11 @@
   <title>الرئيسية (الباحث) - سهلات</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Rotating seeker messages */
+    #seekRot{display:inline-block; opacity:0; transform:translateY(6px); transition: opacity .35s ease, transform .35s ease; color:#334155}
+    #seekRot.show{opacity:1; transform:translateY(0)}
+  </style>
 </head>
 <body class="center-header">
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -64,6 +69,16 @@
   </section>
 </main>
 <footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<!-- Floating corner message (Sahlat-style) for seekers -->
+<div id="seekCornerMsg" style="position:fixed; bottom:12px; left:12px; z-index:50; max-width:280px; background:#fff; color:#0f172a; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.12); padding:10px 12px; display:block">
+  <div style="display:flex; gap:10px; align-items:flex-start">
+    <div style="flex:1">
+  <div style="font-weight:800; margin:0 0 4px; font-size:15px">سهلات</div>
+  <div style="color:#334155; line-height:1.6; font-size:13px"><span id="seekRot" class="show">🔔 ترقّب أول تواصُل قريب! شركتك المناسبة قد تكون على بُعد رسالة واحدة فقط.</span></div>
+      
+    </div>
+  </div>
+  </div>
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
   const p = JSON.parse(localStorage.getItem('seekerProfile')||'{}');
@@ -136,6 +151,34 @@
     document.getElementById('avatar').src = dataUrl;
     fileInput.value = '';
   });
+
+  // Rotate messages every 6s (corner bubble always visible)
+  (function(){
+    var msgs = [
+      '🔔 ترقّب أول تواصُل قريب! شركتك المناسبة قد تكون على بُعد رسالة واحدة فقط.',
+      '💼 في كل يوم شركة جديدة تنضم إلى “سهالات” وتبحث عن أشخاص مثلك.',
+      '🌟 قد تكون فرصتك التالية أقرب مما تتخيل… تأكد من تحديث بياناتك اليوم!',
+      '🚀 ابدأ يومك بخطوة جديدة! الشركات تتابع الباحثين النشيطين أولاً.',
+      '💬 نؤمن أن كل شخص له مكانه المناسب — ودورنا نوصلك له بأسرع وقت.',
+      '✉ ترقّب إشعارك القادم… يمكن يكون فيه عرض عمل يناسبك تمامًا!',
+      '👏 كل يوم يزداد عدد الشركاء في “سهالات” — فرصتك تكبر معانا.',
+      '🔎 نبحث عن الأفضل، ويمكن أنت تكون القادم في قائمة الترشيحات.',
+      '💡 استعد، لأن أول اتصال من شركة ممكن يكون أقرب مما تتصور'
+    ];
+    var rot = document.getElementById('seekRot');
+    if(!rot) return;
+    var i = 1; // first already shown
+    function cycle(){
+      rot.classList.remove('show');
+      setTimeout(function(){
+        rot.textContent = msgs[i % msgs.length];
+        i++;
+        rot.classList.add('show');
+      }, 220);
+    }
+    setTimeout(function(){ rot.classList.add('show'); }, 60);
+    setInterval(cycle, 6000);
+  })();
 </script>
 </body>
 </html>

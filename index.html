@@ -82,6 +82,19 @@
         </div>
       </div>
     </footer>
+    <!-- Floating corner message for job seekers -->
+    <div id="cornerMsg" style="position:fixed; bottom:16px; inset-inline-start:16px; z-index:50; max-width:320px; background:#fff; color:#0f172a; border:1px solid #e5e7eb; border-radius:14px; box-shadow:0 10px 24px rgba(0,0,0,0.12); padding:12px 14px; display:none">
+      <div style="display:flex; gap:10px; align-items:flex-start">
+        <div style="flex:1">
+          <div style="font-weight:800; margin:0 0 4px; font-size:16px">تبحث عن وظيفة؟</div>
+          <div style="color:#334155; line-height:1.6; font-size:14px">ابدأ إنشاء ملفك الآن، الشركات راح تشوفك وتتواصل معك مباشرة.</div>
+          <div class="actions" style="margin-top:8px">
+            <a class="btn btn--primary" href="seeker-register.html">تسجيل جديد</a>
+            <button id="dismissCornerMsg" class="btn btn--secondary" type="button">إغلاق</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <script>
       document.getElementById('y').textContent = new Date().getFullYear();
       // Rotating short phrases under the brand
@@ -133,6 +146,14 @@
       const cEl = document.getElementById('cntCompanies');
       if (sEl) sEl.textContent = fmt(sCount);
       if (cEl) cEl.textContent = fmt(cCount);
+      // Corner message show/hide with persistence
+      try{
+        const hide = localStorage.getItem('hideCornerMsg') === '1';
+        const box = document.getElementById('cornerMsg');
+        const btn = document.getElementById('dismissCornerMsg');
+        if (box && !hide){ box.style.display = 'block'; }
+        if (btn){ btn.addEventListener('click', ()=>{ try{ localStorage.setItem('hideCornerMsg','1'); }catch(e){} box.style.display='none'; }); }
+      }catch(e){}
     </script>
   </body>
   </html>
