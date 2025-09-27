@@ -12,7 +12,7 @@
 <main class="container">
   <h1>تسجيل دخول الباحث</h1>
   <div class="form-card">
-    <form action="seeker-home.html">
+    <form id="seekerLoginForm">
       <div class="field">
         <label for="contact">رقم الجوال أو البريد</label>
         <input id="contact" name="contact" placeholder="05xxxxxxxx أو name@email.com" required />
@@ -30,6 +30,24 @@
   </div>
 </main>
 <footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
-<script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  document.getElementById('seekerLoginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var idEl = document.getElementById('contact');
+    var passEl = document.getElementById('password');
+    var loginId = (idEl && idEl.value ? idEl.value : '').trim();
+    var pass = (passEl && passEl.value ? passEl.value : '').trim();
+    if (!loginId){ alert('يرجى إدخال رقم الجوال أو البريد'); return; }
+    var seekers = [];
+    try{ seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); }catch{}
+    var norm = function(s){ return (s||'').trim().toLowerCase(); };
+    var found = seekers.find(function(s){ return norm(s.phone)===norm(loginId) || norm(s.email)===norm(loginId); });
+    if (!found){ alert('الحساب غير موجود. يرجى التسجيل أولاً.'); return; }
+    if (found.password && pass && found.password !== pass){ alert('كلمة المرور غير صحيحة'); return; }
+    try{ localStorage.setItem('seekerProfile', JSON.stringify(found)); }catch{}
+    window.location.href = 'seeker-home.html';
+  });
+</script>
 </body>
 </html>

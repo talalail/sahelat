@@ -19,8 +19,8 @@
       </div>
   <div class="field"><label for="companyName">اسم الشركة</label><input id="companyName" required /></div>
       <div class="field">
-        <label>المدينة</label>
-        <select>
+        <label for="companyCity">المدينة</label>
+        <select id="companyCity">
           <option>الرياض</option>
           <option>جدة</option>
           <option>مكة</option>
@@ -29,9 +29,9 @@
           <option>الخبر</option>
         </select>
       </div>
-      <div class="field"><label>رقم الجوال</label><input placeholder="05xxxxxxxx" /></div>
-      <div class="field"><label>البريد الإلكتروني</label><input type="email" /></div>
-      <div class="field"><label>كلمة المرور</label><input type="password" /></div>
+      <div class="field"><label for="companyPhone">رقم الجوال</label><input id="companyPhone" placeholder="05xxxxxxxx" /></div>
+      <div class="field"><label for="companyEmail">البريد الإلكتروني</label><input id="companyEmail" type="email" /></div>
+      <div class="field"><label for="companyPass">كلمة المرور</label><input id="companyPass" type="password" /></div>
       <div class="field" style="grid-column:1/-1">
         <label><input id="showSeekers" type="checkbox" checked /> عرض بيانات الباحثين</label>
       </div>
@@ -52,9 +52,18 @@
   if (code !== '951753##'){ alert('كود سهلات غير صحيح'); return; }
     const name = document.getElementById('companyName').value.trim();
     if(!name){ alert('يرجى كتابة اسم الشركة'); return; }
+    const cityEl = document.getElementById('companyCity');
+    const phone = (document.getElementById('companyPhone').value||'').trim();
+    const email = (document.getElementById('companyEmail').value||'').trim();
+    const password = (document.getElementById('companyPass').value||'').trim();
+    if (!phone && !email){ alert('يرجى إدخال رقم الجوال أو البريد الإلكتروني'); return; }
     try { localStorage.setItem('companyAccessOK', 'true'); } catch {}
     const companies = JSON.parse(localStorage.getItem('companies')||'[]');
-    companies.push({ name, logo: 'company-fallback.svg' });
+    const norm = (s)=> (s||'').trim().toLowerCase();
+    const exists = companies.some(c=> (phone && norm(c.phone)===norm(phone)) || (email && norm(c.email)===norm(email)) );
+    if (exists){ alert('هذا الرقم أو البريد مسجّل مسبقاً'); return; }
+    const company = { name, city: cityEl ? cityEl.value : '', phone, email, password, logo: 'company-fallback.svg' };
+    companies.push(company);
     try { localStorage.setItem('companies', JSON.stringify(companies)); } catch {}
     window.location.href = 'company-home.html';
   });

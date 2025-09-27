@@ -220,6 +220,14 @@
       photoUrl: photoDataUrl || 'jobseeker.jpg'
     };
     try {
+      // Require at least phone or email
+      if (!profile.phone && !profile.email){ alert('يرجى إدخال رقم الجوال أو البريد الإلكتروني'); return; }
+      // Uniqueness check on seekers list for phone/email
+      const norm = (s)=> (s||'').trim().toLowerCase();
+      let seekers = [];
+      try { seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); } catch {}
+      const duplicate = seekers.find(s => (profile.phone && norm(s.phone)===norm(profile.phone)) || (profile.email && norm(s.email)===norm(profile.email)));
+      if (duplicate){ alert('هذا الرقم أو البريد مسجّل مسبقاً'); return; }
       // helper to create a stable id from a key
       const makeId = (keyStr) => {
         let h = 0; for (const ch of (keyStr||'')) { h = ((h<<5)-h) + ch.charCodeAt(0); h |= 0; }
@@ -227,17 +235,8 @@
       };
       // Upsert into global seekers list for company browsing
       const key = profile.email || profile.phone || profile.nationalId || profile.fullName;
-      let seekers = [];
-      try { seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); } catch {}
-      const i = seekers.findIndex(s => (s.email||s.phone||s.nationalId||s.fullName) === key);
-      if (i >= 0) {
-        // preserve id if exists
-        profile.id = seekers[i].id || makeId(key);
-        seekers[i] = profile;
-      } else {
-        profile.id = makeId(key);
-        seekers.push(profile);
-      }
+      profile.id = makeId(key);
+      seekers.push(profile);
       // Save active profile too
       localStorage.setItem('seekerProfile', JSON.stringify(profile));
       localStorage.setItem('seekers', JSON.stringify(seekers));

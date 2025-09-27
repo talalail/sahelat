@@ -23,6 +23,10 @@
     @media (max-width: 560px){
       .company-head .profile-head__info{padding-inline-start:0}
     }
+      /* Light toggle button styling */
+      .toggle-btn{background:#f8fafc; color:#0b1222; border:1px solid #e2e8f0}
+      .toggle-btn:hover{background:#eef2f7}
+      .toggle-btn.is-active{background:#fffbe6; border-color:#facc15; color:#7a5c00}
   </style>
 </head>
 <body class="center-header">
@@ -43,11 +47,12 @@
       <div class="profile-head__info">
   <h1 style="margin:6px 0 6px; font-size:20px; color:#0b1222">ابحث عن الموظف المناسب</h1>
         <div class="form-help" style="color:#334155">ابحث وفلتر الباحثين بحسب الوظيفة والمدينة والعمر والجنسية</div>
-        
+        <div class="actions" style="margin-top:6px; gap:8px">
+          <button id="browseSeekersBtn" class="btn toggle-btn" type="button" style="padding:6px 10px">عرض الباحثين</button>
+        </div>
       </div>
     </div>
-    <div class="filters">
-      <input id="q" placeholder="🔎 ابحث بالاسم أو المدينة أو الجنسية" />
+    <div id="filtersBox" class="filters" style="display:none">
       <select id="fJob">
         <option value="">الوظيفة</option>
         <option>كاشير</option>
@@ -78,11 +83,49 @@
   </section>
 
   <section style="margin-top:14px">
-    <div id="resultsMeta" class="actions" style="justify-content:space-between; align-items:center; margin-bottom:8px">
+    <div id="resultsMeta" class="actions" style="display:none; justify-content:space-between; align-items:center; margin-bottom:8px">
       <div class="form-help" id="resultsCount">النتائج: 0</div>
       <button id="clearFilters" class="btn btn--secondary" type="button">مسح الفلاتر</button>
     </div>
-    <div id="results" class="form-card"></div>
+    <!-- Company info editor -->
+    <div id="companyInfoCard" class="form-card" style="margin-bottom:12px">
+      <h3 style="margin:0 0 10px">معلومات الشركة / المؤسسة</h3>
+      <div class="form-grid">
+        <div class="field"><label for="cName">اسم الشركة</label><input id="cName" required /></div>
+        <div class="field">
+          <label for="cCity">المدينة</label>
+          <select id="cCity">
+            <option value="">—</option>
+            <option>الرياض</option>
+            <option>جدة</option>
+            <option>مكة</option>
+            <option>المدينة المنورة</option>
+            <option>الدمام</option>
+            <option>الخبر</option>
+            <option>بريدة</option>
+            <option>تبوك</option>
+            <option>أبها</option>
+            <option>جازان</option>
+          </select>
+        </div>
+        <div class="field"><label for="cPhone">رقم الجوال</label><input id="cPhone" placeholder="05xxxxxxxx" /></div>
+        <div class="field"><label for="cEmail">البريد الإلكتروني</label><input id="cEmail" type="email" /></div>
+        <div class="field"><label for="cPass">كلمة المرور</label><input id="cPass" type="password" /></div>
+        <div class="field" style="grid-column:1/-1">
+          <label for="cLogo">الشعار / اللوقو (صورة)</label>
+          <input id="cLogo" type="file" accept="image/*" />
+          <div style="display:flex; align-items:center; gap:10px; margin-top:8px">
+            <img id="cLogoPreview" src="company-fallback.svg" alt="شعار الشركة" style="width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid #e5e7eb" onerror="this.src='company-fallback.svg'" />
+            <div class="form-help">الرجاء رفع شعار واضح. هذا الشعار سيظهر للباحثين عن الوظائف.</div>
+          </div>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:12px">
+        <button id="saveCompanyBtn" class="btn btn--primary" type="button">حفظ</button>
+        <button id="cancelCompanyBtn" class="btn" type="button">إلغاء</button>
+      </div>
+    </div>
+    <div id="results" class="form-card" style="display:none"></div>
   </section>
 </main>
 <footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
@@ -135,6 +178,9 @@
   setInterval(cycle, 6000);
   })();
   const results = document.getElementById('results');
+  const metaBox = document.getElementById('resultsMeta');
+  const filtersBox = document.getElementById('filtersBox');
+  const section = metaBox ? metaBox.parentNode : null;
   const els = {
     q: document.getElementById('q'),
     job: document.getElementById('fJob'),
@@ -146,7 +192,7 @@
   const countEl = document.getElementById('resultsCount');
   const clearBtn = document.getElementById('clearFilters');
   function clearFilters(){
-    els.q.value=''; els.job.value=''; els.city.value=''; els.minAge.value=''; els.maxAge.value='';
+    if (els.q) els.q.value=''; els.job.value=''; els.city.value=''; els.minAge.value=''; els.maxAge.value='';
     apply();
   }
   clearBtn.addEventListener('click', clearFilters);
@@ -193,7 +239,7 @@
       }catch{}
     }
     if (mutated){ try{ localStorage.setItem('seekers', JSON.stringify(arr)); }catch{} }
-    const q = (els.q.value||'').trim();
+  const q = els.q ? (els.q.value||'').trim() : '';
     const job = els.job.value||''; const city = els.city.value||'';
     const min = parseInt(digits(els.minAge.value)||'-1',10); const max = parseInt(digits(els.maxAge.value)||'999',10);
     const out = arr.filter(s=>{
@@ -212,12 +258,139 @@
     if (clearBtn) clearBtn.disabled = !filtersActive;
     render(out);
   }
-  els.q.addEventListener('input', apply);
+  if (els.q) els.q.addEventListener('input', apply);
   els.job.addEventListener('change', apply);
   els.city.addEventListener('change', apply);
   els.minAge.addEventListener('input', apply);
   els.maxAge.addEventListener('input', apply);
   apply();
+
+  // My Info editor logic
+  const myBtn = document.getElementById('myInfoBtn');
+  const card = document.getElementById('companyInfoCard');
+  const cName = document.getElementById('cName');
+  const cCity = document.getElementById('cCity');
+  const cPhone = document.getElementById('cPhone');
+  const cEmail = document.getElementById('cEmail');
+  const cPass = document.getElementById('cPass');
+  const cLogo = document.getElementById('cLogo');
+  const cLogoPreview = document.getElementById('cLogoPreview');
+  const saveBtn = document.getElementById('saveCompanyBtn');
+  const cancelBtn = document.getElementById('cancelCompanyBtn');
+
+  function makeId(key){ let h=0; for(const ch of (key||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 'c'+Math.abs(h); }
+  function getCompanies(){ try{ return JSON.parse(localStorage.getItem('companies')||'[]') }catch{ return [] } }
+  function setCompanies(arr){ try{ localStorage.setItem('companies', JSON.stringify(arr)); }catch{} }
+  function getCurrentCompany(){
+    try{
+      const cur = JSON.parse(localStorage.getItem('currentCompany')||'null');
+      if (cur && cur.name) return cur;
+      const arr = getCompanies();
+      return arr.length ? arr[arr.length-1] : null;
+    }catch{ return null }
+  }
+  function setCurrentCompany(obj){ try{ localStorage.setItem('currentCompany', JSON.stringify(obj)); }catch{} }
+
+  function openEditor(){
+    const data = getCurrentCompany() || {};
+    cName.value = data.name || '';
+    cCity.value = data.city || '';
+    cPhone.value = data.phone || '';
+    cEmail.value = data.email || '';
+    cPass.value = data.password || '';
+    cLogoPreview.src = data.logo || 'company-fallback.svg';
+    card.style.display = '';
+    card.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  function closeEditor(){ card.style.display='none'; }
+
+  if (myBtn){ myBtn.addEventListener('click', openEditor); }
+  if (cancelBtn){ cancelBtn.addEventListener('click', closeEditor); }
+  if (cLogo){
+    cLogo.addEventListener('change', ()=>{
+      const f = cLogo.files && cLogo.files[0];
+      if (!f) return;
+      const fr = new FileReader();
+      fr.onload = ()=>{ cLogoPreview.src = fr.result||''; };
+      fr.readAsDataURL(f);
+    });
+  }
+
+  async function toDataUrl(file){
+    return await new Promise((res)=>{ const fr = new FileReader(); fr.onload=()=>res(fr.result||''); fr.readAsDataURL(file); });
+  }
+
+  if (saveBtn){
+    saveBtn.addEventListener('click', async ()=>{
+      const name = (cName.value||'').trim();
+      if (!name){ alert('يرجى كتابة اسم الشركة'); return; }
+      const phoneVal = (cPhone.value||'').trim();
+      const emailVal = (cEmail.value||'').trim();
+      if (!phoneVal && !emailVal){ alert('يرجى إدخال رقم الجوال أو البريد الإلكتروني'); return; }
+      const existing = getCurrentCompany() || {};
+      let logo = existing.logo || '';
+      const file = cLogo.files && cLogo.files[0];
+      if (file){ logo = await toDataUrl(file); }
+      if (!logo){ alert('الرجاء رفع شعار/لوقو للشركة'); return; }
+      const obj = {
+        id: existing.id || makeId((existing.email||'') + '|' + (existing.phone||'') + '|' + (existing.name||name) + '|' + Date.now()),
+        name,
+        city: (cCity.value||'').trim(),
+        phone: phoneVal,
+        email: emailVal,
+        password: (cPass.value||'').trim(),
+        logo
+      };
+      // upsert into companies list
+      const arr = getCompanies();
+      // enforce uniqueness for phone/email across others
+      const norm = (s)=> (s||'').trim().toLowerCase();
+      const dupe = arr.find(x=> x && x.id !== obj.id && ((phoneVal && norm(x.phone)===norm(phoneVal)) || (emailVal && norm(x.email)===norm(emailVal))));
+      if (dupe){ alert('هذا الرقم أو البريد مسجّل مسبقاً لحساب آخر'); return; }
+      const idx = obj.id ? arr.findIndex(x=>x && x.id===obj.id) : -1;
+      if (idx >= 0){ arr[idx] = obj; }
+      else {
+        // fallback match by name if id not found
+        const i2 = arr.findIndex(x=>x && x.name===existing.name);
+        if (i2>=0) arr[i2]=obj; else arr.push(obj);
+      }
+      setCompanies(arr);
+      setCurrentCompany(obj);
+      alert('تم حفظ بيانات الشركة');
+      // keep info visible by default
+      // no need to refresh companies grid here; seekers will see updated logo from localStorage
+    });
+  }
+
+  // Ensure info is visible and prefilled on load
+  openEditor();
+
+  // Toggle seekers browser
+  const browseBtn = document.getElementById('browseSeekersBtn');
+  let seekersVisible = false;
+  function setSeekersVisible(v){
+    seekersVisible = v;
+    if (filtersBox) filtersBox.style.display = v ? 'grid' : 'none';
+    if (metaBox) metaBox.style.display = v ? 'flex' : 'none';
+    if (results) results.style.display = v ? '' : 'none';
+    if (browseBtn) browseBtn.textContent = v ? 'إخفاء الباحثين' : 'عرض الباحثين';
+    if (browseBtn) browseBtn.classList.toggle('is-active', !!v);
+    // Move and show/hide company info card as requested
+    if (section && card){
+      if (v){
+        // move card to the bottom and hide it
+        section.appendChild(card);
+        card.style.display = 'none';
+      } else {
+        // restore card before results and show it
+        try{ section.insertBefore(card, results); }catch{}
+        card.style.display = '';
+        card.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    }
+    if (v) apply();
+  }
+  if (browseBtn){ browseBtn.addEventListener('click', ()=> setSeekersVisible(!seekersVisible)); }
 </script>
 </body>
 </html>

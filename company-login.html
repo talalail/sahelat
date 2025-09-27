@@ -13,8 +13,8 @@
   <h1>تسجيل دخول الشركة</h1>
   <div class="form-card">
     <form id="companyLoginForm">
-      <div class="field"><label>رقم الجوال أو البريد</label><input required /></div>
-      <div class="field"><label>كلمة المرور</label><input type="password" required /></div>
+      <div class="field"><label>رقم الجوال أو البريد</label><input id="loginId" required /></div>
+      <div class="field"><label>كلمة المرور</label><input id="loginPass" type="password" required /></div>
   <div class="field"><label>كود سهلات</label><input id="accessCode" required type="password" maxlength="8" autocomplete="off" /></div>
       <div class="actions" style="margin-top:12px">
         <button class="btn btn--primary" type="submit">دخول</button>
@@ -29,9 +29,24 @@
   document.getElementById('y').textContent = new Date().getFullYear();
   document.getElementById('companyLoginForm').addEventListener('submit', (e)=>{
     e.preventDefault();
-  const code = (document.getElementById('accessCode')?.value||'').trim();
+  var acEl = document.getElementById('accessCode');
+  var code = (acEl && acEl.value ? acEl.value : '').trim();
   if (code !== '951753##'){ alert('كود سهلات غير صحيح'); return; }
-    try { localStorage.setItem('companyAccessOK', 'true'); } catch {}
+    var idEl = document.getElementById('loginId');
+    var passEl = document.getElementById('loginPass');
+    var loginId = (idEl && idEl.value ? idEl.value : '').trim();
+    var pass = (passEl && passEl.value ? passEl.value : '').trim();
+    if (!loginId){ alert('يرجى إدخال رقم الجوال أو البريد'); return; }
+    var companies = [];
+    try{ companies = JSON.parse(localStorage.getItem('companies')||'[]'); }catch{}
+    var norm = function(s){ return (s||'').trim().toLowerCase(); };
+    var found = companies.find(function(c){ return norm(c.phone)===norm(loginId) || norm(c.email)===norm(loginId); });
+    if (!found){ alert('الحساب غير موجود. يرجى التسجيل أولاً.'); return; }
+    if (found.password && pass && found.password !== pass){ alert('كلمة المرور غير صحيحة'); return; }
+    try {
+      localStorage.setItem('companyAccessOK', 'true');
+      localStorage.setItem('currentCompany', JSON.stringify(found));
+    } catch {}
     window.location.href = 'company-home.html';
   });
 </script>
