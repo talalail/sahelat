@@ -24,17 +24,29 @@
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
   const container = document.getElementById('companies');
-  const companies = JSON.parse(localStorage.getItem('companies')||'[]');
-  if (!Array.isArray(companies) || companies.length===0) {
+  let companies = [];
+  try{ companies = JSON.parse(localStorage.getItem('companies')||'[]'); }catch{}
+  if (!Array.isArray(companies)) companies = [];
+  // Seed from currentCompany if empty
+  try{
+    if (companies.length===0){
+      const cur = JSON.parse(localStorage.getItem('currentCompany')||'null');
+      if (cur && (cur.name || cur.logo)){
+        companies = [cur];
+        try{ localStorage.setItem('companies', JSON.stringify(companies)); }catch{}
+      }
+    }
+  }catch{}
+  if (companies.length===0) {
     container.innerHTML = '<div class="form-help">لا توجد شركات مسجلة حالياً</div>';
   } else {
     for (const c of companies) {
       const card = document.createElement('div');
       card.className = 'company-card';
-      const logoSrc = c.logo || 'company-fallback.svg';
+      const logoSrc = (c && c.logo) ? c.logo : 'company-fallback.svg';
       card.innerHTML = `
-        <img class="company-logo" src="${logoSrc}" alt="${c.name||''}" onerror="this.onerror=null;this.src='company-fallback.svg'">
-        <div class="company-name">${c.name||''}</div>
+        <img class="company-logo" src="${logoSrc}" alt="${(c&&c.name)||''}" onerror="this.onerror=null;this.src='company-fallback.svg'">
+        <div class="company-name">${(c&&c.name)||'—'}</div>
       `;
       container.appendChild(card);
     }
