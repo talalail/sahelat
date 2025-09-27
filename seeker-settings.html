@@ -82,7 +82,17 @@
 <footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
-  const p = JSON.parse(localStorage.getItem('seekerProfile')||'{}');
+  // Load strictly by currentSeekerId
+  let p = {};
+  try{
+    const curId = localStorage.getItem('currentSeekerId')||'';
+    const arr = JSON.parse(localStorage.getItem('seekers')||'[]');
+    if (curId){ const f = arr.find(s=> s && s.id===curId); if (f) p = f; }
+  }catch{}
+  if (!p || !p.id){
+    alert('لا توجد جلسة باحث نشطة. الرجاء تسجيل الدخول.');
+    window.location.href = 'seeker-login.html';
+  }
   const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v||''; };
   setVal('firstName', p.firstName);
   setVal('lastName', p.lastName);

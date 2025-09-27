@@ -60,6 +60,7 @@
 
     <div class="nav" style="margin-top:14px">
       <a class="btn" href="seeker-settings.html">⚙️ تعديل البيانات</a>
+      <button id="seekerLogout" class="btn btn--secondary" type="button">تسجيل خروج</button>
     </div>
   </section>
 
@@ -81,18 +82,17 @@
   </div>
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
-  // Prefer loading by currentSeekerId to avoid showing wrong profile
-  let p = {};
+  // Strictly require currentSeekerId to avoid showing another user's data
+  let p = null;
   try{
     const curId = localStorage.getItem('currentSeekerId')||'';
     const seekers = JSON.parse(localStorage.getItem('seekers')||'[]');
-    if (curId){ const found = seekers.find(s=> s && s.id===curId); if (found) p = found; }
-    if (!p || !p.fullName){ p = JSON.parse(localStorage.getItem('seekerProfile')||'{}'); }
-    // Sync seekerProfile with the one found by id
-    if (p && p.id){ try{ localStorage.setItem('seekerProfile', JSON.stringify(p)); }catch{} }
-  }catch{ p = JSON.parse(localStorage.getItem('seekerProfile')||'{}'); }
+    if (curId){ p = seekers.find(s=> s && s.id===curId) || null; }
+  }catch{}
   if (!p || !p.fullName){
     document.getElementById('emptyNotice').style.display = '';
+    // stop further rendering
+    throw new Error('No active seeker session');
   } else {
   document.getElementById('profileCard').style.display = '';
   // Header: just full name
@@ -188,6 +188,17 @@
     }
     setTimeout(function(){ rot.classList.add('show'); }, 60);
     setInterval(cycle, 6000);
+  })();
+
+  // Logout clears active session
+  (function(){
+    var out = document.getElementById('seekerLogout');
+    if (!out) return;
+    out.addEventListener('click', function(){
+      try{ localStorage.removeItem('currentSeekerId'); }catch{}
+      try{ localStorage.removeItem('seekerProfile'); }catch{}
+      window.location.href = 'seeker-login.html';
+    });
   })();
 </script>
 </body>
