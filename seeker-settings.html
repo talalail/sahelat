@@ -129,35 +129,43 @@
   const certsInput = document.getElementById('certsInput');
   const certList = document.getElementById('certList');
   const certsCount = document.getElementById('certsCount');
-  const certs = new Map();
+  const certs = new Map(); // key -> {name, dataUrl?, mime?}
   function isAllowedCertName(name){
     const n=(name||'').toLowerCase(); return n.endsWith('.pdf')||n.endsWith('.doc')||n.endsWith('.docx');
   }
   function renderCerts(){
     certList.innerHTML='';
-    for(const [key, name] of certs){
+    for(const [key, obj] of certs){
       const li = document.createElement('li'); li.className='file-item';
-      const span = document.createElement('span'); span.textContent = name;
+      const span = document.createElement('span'); span.textContent = obj && obj.name ? obj.name : 'ملف';
       const btn = document.createElement('button'); btn.type='button'; btn.className='btn btn--secondary file-remove'; btn.textContent='حذف';
       btn.addEventListener('click', ()=>{ certs.delete(key); renderCerts(); });
       li.append(span, btn); certList.appendChild(li);
     }
     certsCount.textContent = String(certs.size);
   }
-  // Prefill from p.certificates (names only)
+  // Prefill from p.certificates (objects with dataUrl if available)
   if (Array.isArray(p.certificates)){
     for(const c of p.certificates){
-      if (c && typeof c==='object' && c.name){ const k = `${c.name}|${Math.random()}`; certs.set(k, c.name); }
-      else if (typeof c==='string'){ const k = `${c}|${Math.random()}`; certs.set(k, c); }
+      if (c && typeof c==='object' && c.name){
+        const k = `${c.name}|${Math.random()}`; certs.set(k, { name: c.name, dataUrl: c.dataUrl||'', mime: c.mime||'' });
+      } else if (typeof c==='string'){
+        const k = `${c}|${Math.random()}`; certs.set(k, { name: c });
+      }
     }
     renderCerts();
   }
-  certsInput.addEventListener('change', ()=>{
+  async function fileToObj(f){
+    return await new Promise((res)=>{ const fr=new FileReader(); fr.onload=()=>res({name:f.name, dataUrl: fr.result||'', mime: f.type||''}); fr.readAsDataURL(f); });
+  }
+  certsInput.addEventListener('change', async ()=>{
     const files = Array.from(certsInput.files||[]);
     for(const f of files){
       const n=f.name||'';
       if (!isAllowedCertName(n)) continue;
-      const k = `${n}|${f.size}|${f.lastModified}`; if(!certs.has(k)) certs.set(k, n);
+      const k = `${n}|${f.size}|${f.lastModified}`; if(!certs.has(k)){
+        try{ const obj = await fileToObj(f); certs.set(k, obj); }catch{}
+      }
     }
     certsInput.value = ''; renderCerts();
   });
@@ -176,7 +184,7 @@
     p.about = document.getElementById('about').value.trim();
     // Jobs
     p.jobs = Array.from(document.querySelectorAll('input[name="job"]:checked')).map(i=>i.value);
-  // Certs (names only from settings to keep simple; new uploads handled at register time)
+  // Certs: save objects (with dataUrl for newly uploaded ones)
   p.certificates = Array.from(certs.values());
     p.fullName = `${p.firstName||''} ${p.lastName||''}`.trim();
     try {

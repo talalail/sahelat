@@ -122,7 +122,7 @@
       var href = (c && typeof c==='object' && c.dataUrl) ? c.dataUrl : '';
       var el;
       if (href){
-        el = document.createElement('a'); el.href = href; el.target = '_blank'; el.rel='noopener'; el.className='file'; el.textContent = name;
+        el = document.createElement('a'); el.href = href; el.target = '_blank'; el.rel='noopener'; el.className='file'; el.textContent = name; el.setAttribute('download', name);
       } else {
         el = document.createElement('span'); el.className='file'; el.textContent = name;
       }
