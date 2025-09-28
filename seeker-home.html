@@ -82,18 +82,51 @@
   </div>
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
-  // Strictly require currentSeekerId to avoid showing another user's data
+  // Robust session restore: ensure IDs, fall back to seekerProfile if needed
   let p = null;
-  try{
-    const curId = localStorage.getItem('currentSeekerId')||'';
-    const seekers = JSON.parse(localStorage.getItem('seekers')||'[]');
-    if (curId){ p = seekers.find(s=> s && s.id===curId) || null; }
-  }catch{}
-  if (!p || !p.fullName){
-    document.getElementById('emptyNotice').style.display = '';
-    // stop further rendering
-    throw new Error('No active seeker session');
-  } else {
+  (function restoreSession(){
+    try{
+      const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 's'+Math.abs(h); };
+      let seekers = [];
+      try{ seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); }catch{}
+      if (!Array.isArray(seekers)) seekers = [];
+      const curId = (localStorage.getItem('currentSeekerId')||'').trim();
+      // 1) Try find by currentSeekerId
+      if (curId){ p = seekers.find(s=> s && s.id===curId) || null; }
+      // 2) If not found, ensure IDs for any legacy seekers and retry
+      if (!p){
+        let mutated=false;
+        for (const s of seekers){ if (s && !s.id){ const key=s.email||s.phone||s.nationalId||s.fullName||Math.random().toString(36); s.id = makeId(key); mutated=true; } }
+        if (mutated){ try{ localStorage.setItem('seekers', JSON.stringify(seekers)); }catch{} }
+        if (curId){ p = seekers.find(s=> s && s.id===curId) || null; }
+      }
+      // 3) If still not found, try to seed from seekerProfile and set session
+      if (!p){
+        let sp=null; try{ sp = JSON.parse(localStorage.getItem('seekerProfile')||'null'); }catch{}
+        if (sp && (sp.fullName || sp.email || sp.phone || sp.nationalId)){
+          if (!sp.id){ const key=sp.email||sp.phone||sp.nationalId||sp.fullName; sp.id = makeId(key); }
+          // upsert into seekers by id (or contact info)
+          const norm = (s)=> (s||'').trim().toLowerCase();
+          const phoneEmailKey = (o)=> `${norm(o.phone)}|${norm(o.email)}|${norm(o.nationalId)}`;
+          const keySP = phoneEmailKey(sp);
+          const idxById = seekers.findIndex(x=> x && x.id===sp.id);
+          const idxByContact = seekers.findIndex(x=> x && phoneEmailKey(x)===keySP);
+          if (idxById>=0) seekers[idxById] = sp;
+          else if (idxByContact>=0) seekers[idxByContact] = sp;
+          else seekers.push(sp);
+          try{ localStorage.setItem('seekers', JSON.stringify(seekers)); }catch{}
+          try{ localStorage.setItem('currentSeekerId', sp.id); }catch{}
+          p = sp;
+        }
+      }
+    }catch{}
+    // 4) If still nothing, show empty notice and stop rendering
+    if (!p || !p.fullName){
+      document.getElementById('emptyNotice').style.display = '';
+      return; // do not throw to avoid breaking other UI parts
+    }
+  })();
+  if (p && p.fullName){
   document.getElementById('profileCard').style.display = '';
   // Header: just full name
   document.getElementById('name').textContent = p.fullName;
@@ -119,12 +152,12 @@
         const s = document.createElement('span'); s.className = 'chip-gray'; s.textContent = j; jobsC.appendChild(s);
       }
     } else { jobsC.textContent = '-'; }
-    // Certificates
+    // Certificates (support both strings and objects)
     const certsC = document.getElementById('kCerts');
     if (Array.isArray(p.certificates) && p.certificates.length){
       certsC.innerHTML = '';
-      for(const n of p.certificates){
-        const d = document.createElement('span'); d.className = 'file'; d.textContent = n; certsC.appendChild(d);
+      for(const c of p.certificates){
+        const d = document.createElement('span'); d.className = 'file'; d.textContent = (typeof c==='string') ? c : (c && c.name) || 'ملف'; certsC.appendChild(d);
       }
     } else { certsC.innerHTML = '<span class="form-help">-</span>'; }
   }
