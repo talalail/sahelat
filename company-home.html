@@ -7,6 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="js/storage.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
   <style>
     .filters{display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr; gap:10px}
     @media (max-width: 900px){.filters{grid-template-columns:1fr 1fr}}
@@ -50,6 +52,7 @@
         <div class="form-help" style="color:#334155">ابحث وفلتر الباحثين بحسب الوظيفة والمدينة والعمر والجنسية</div>
         <div class="actions" style="margin-top:6px; gap:8px">
           <button id="browseSeekersBtn" class="btn toggle-btn" type="button" style="padding:6px 10px">عرض الباحثين</button>
+          <button id="shareCompanyBtn" class="btn" type="button" style="padding:6px 10px">🔗 مشاركة الشركة</button>
         </div>
       </div>
     </div>
@@ -219,8 +222,11 @@
       card.append(img, box); results.appendChild(card);
     }
   }
+  let LIVE_SEEKERS = [];
   function apply(){
-  let arr=[]; try{ arr = JSON.parse(SahlatStore.getItem('seekers')||'[]'); }catch{}
+    // prefer live data if available
+    let arr = (Array.isArray(LIVE_SEEKERS) && LIVE_SEEKERS.length) ? LIVE_SEEKERS.slice() : [];
+    if (!arr.length){ try{ arr = JSON.parse(SahlatStore.getItem('seekers')||'[]'); }catch{} }
     // Ensure each seeker has an id (for older saved data)
     const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 's'+Math.abs(h); };
     let mutated = false;
@@ -265,6 +271,18 @@
   els.minAge.addEventListener('input', apply);
   els.maxAge.addEventListener('input', apply);
   apply();
+
+  // Live Firestore subscription
+  (function(){
+    if (!window.SahlatDB) return;
+    SahlatDB.subscribeSeekers(function(all){
+      LIVE_SEEKERS = Array.isArray(all) ? all : [];
+      // update local backup
+      try{ SahlatStore.setItem('seekers', JSON.stringify(LIVE_SEEKERS)); }catch{}
+      // re-apply filters if browsing is visible
+      if (seekersVisible){ apply(); }
+    });
+  })();
 
   // My Info editor logic
   const myBtn = document.getElementById('myInfoBtn');
@@ -348,10 +366,15 @@
       const norm = (s)=> (s||'').trim().toLowerCase();
       const dupe = arr.find(x=> x && x.id !== obj.id && ((phoneVal && norm(x.phone)===norm(phoneVal)) || (emailVal && norm(x.email)===norm(emailVal))));
       if (dupe){ alert('هذا الرقم أو البريد مسجّل مسبقاً لحساب آخر'); return; }
+      // Upsert to Firestore first
+      try{
+        if (!window.SahlatDB){ throw new Error('no-db'); }
+        const newId = await SahlatDB.upsertCompany(obj);
+        obj.id = newId;
+      }catch(e){ /* keep local */ }
       const idx = obj.id ? arr.findIndex(x=>x && x.id===obj.id) : -1;
       if (idx >= 0){ arr[idx] = obj; }
       else {
-        // fallback match by name if id not found
         const i2 = arr.findIndex(x=>x && x.name===existing.name);
         if (i2>=0) arr[i2]=obj; else arr.push(obj);
       }
@@ -392,6 +415,26 @@
     if (v) apply();
   }
   if (browseBtn){ browseBtn.addEventListener('click', ()=> setSeekersVisible(!seekersVisible)); }
+
+  // Share company: builds import link to copy/share cross-device
+  (function(){
+    var btn = document.getElementById('shareCompanyBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async function(){
+      try{
+        var cur = getCurrentCompany();
+        if (!cur || !cur.name){ alert('يرجى حفظ بيانات الشركة أولاً'); return; }
+        var payload = { company: cur };
+        var txt = JSON.stringify(payload);
+        var enc = encodeURIComponent(txt);
+        var base = location.origin + location.pathname.replace(/[^/]*$/, '');
+        var url = base + 'import.html?data=' + enc;
+        if (navigator.share){ await navigator.share({ url, title: 'مشاركة شركة سهلات' }); }
+        else if (navigator.clipboard){ await navigator.clipboard.writeText(url); alert('تم نسخ رابط المشاركة. الصقه في الجهاز الآخر لفتح واستيراد سريع.'); }
+        else { prompt('انسخ الرابط التالي للمشاركة:', url); }
+      }catch(e){ alert('تعذر إنشاء رابط المشاركة'); }
+    });
+  })();
 </script>
 </body>
 </html>

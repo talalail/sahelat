@@ -7,6 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="js/storage.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
 </head>
 <body class="center-header">
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -229,19 +231,22 @@
   try { seekers = JSON.parse(SahlatStore.getItem('seekers')||'[]'); } catch {}
   const duplicate = seekers.find(s => (profile.phone && norm(s.phone)===norm(profile.phone)) || (profile.email && norm(s.email)===norm(profile.email)) || (profile.nationalId && norm(s.nationalId)===norm(profile.nationalId)) );
       if (duplicate){ alert('هذا الرقم أو البريد مسجّل مسبقاً'); return; }
-      // helper to create a stable id from a key
-      const makeId = (keyStr) => {
-        let h = 0; for (const ch of (keyStr||'')) { h = ((h<<5)-h) + ch.charCodeAt(0); h |= 0; }
-        return 's' + Math.abs(h);
-      };
-      // Upsert into global seekers list for company browsing
-      const key = profile.email || profile.phone || profile.nationalId || profile.fullName;
-      profile.id = makeId(key);
-      seekers.push(profile);
-  // Save active profile too
-  SahlatStore.setItem('seekerProfile', JSON.stringify(profile));
-  SahlatStore.setItem('currentSeekerId', profile.id);
-  SahlatStore.setItem('seekers', JSON.stringify(seekers));
+      // Try Firestore first; if unavailable, continue offline
+      let id = '';
+      if (window.SahlatDB && SahlatDB.upsertSeeker){
+        try { id = await SahlatDB.upsertSeeker(profile); } catch (e) { /* continue offline */ }
+      }
+      if (!id){
+        const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 's'+Math.abs(h); };
+        id = makeId(profile.email||profile.phone||profile.nationalId||profile.fullName||Math.random().toString(36));
+      }
+      profile.id = id;
+      // Local backup/upsert
+      const idx = seekers.findIndex(s=> s && s.id===id);
+      if (idx>=0) seekers[idx]=profile; else seekers.push(profile);
+      SahlatStore.setItem('seekerProfile', JSON.stringify(profile));
+      SahlatStore.setItem('currentSeekerId', id);
+      SahlatStore.setItem('seekers', JSON.stringify(seekers));
     } catch {}
     try { window.location.assign('seeker-home.html'); } catch (navErr) { window.location.href = 'seeker-home.html'; }
   });

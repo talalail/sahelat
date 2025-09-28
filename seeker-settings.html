@@ -7,6 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="js/storage.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
 </head>
 <body class="center-header">
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -171,7 +173,7 @@
     certsInput.value = ''; renderCerts();
   });
 
-  document.getElementById('settingsForm').addEventListener('submit', (e)=>{
+  document.getElementById('settingsForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
     p.firstName = document.getElementById('firstName').value.trim();
     p.lastName = document.getElementById('lastName').value.trim();
@@ -202,6 +204,10 @@
       const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 's'+Math.abs(h); };
       if (idx >= 0) { p.id = seekers[idx].id || makeId(key); seekers[idx] = p; }
       else { p.id = makeId(key); seekers.push(p); }
+      // Try to sync to Firestore first for cross-device updates
+      if (window.SahlatDB && SahlatDB.upsertSeeker){
+        try{ await SahlatDB.upsertSeeker(p); }catch(err){ console.warn('Firestore upsert (seeker) failed, saving locally only', err); }
+      }
   SahlatStore.setItem('seekers', JSON.stringify(seekers));
   SahlatStore.setItem('seekerProfile', JSON.stringify(p));
   if (p.id) SahlatStore.setItem('currentSeekerId', p.id);

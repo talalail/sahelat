@@ -12,6 +12,8 @@
     #seekRot.show{opacity:1; transform:translateY(0)}
   </style>
   <script src="js/storage.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
 </head>
 <body class="center-header">
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -62,6 +64,7 @@
     <div class="nav" style="margin-top:14px">
       <a class="btn" href="seeker-settings.html">⚙️ تعديل البيانات</a>
       <button id="seekerLogout" class="btn btn--secondary" type="button">تسجيل خروج</button>
+      <button id="shareProfile" class="btn" type="button">🔗 مشاركة ملفي</button>
     </div>
   </section>
 
@@ -193,6 +196,28 @@
     }
   }
 
+  // Live subscription to companies for seekers
+  (function(){
+    if (!window.SahlatDB) return;
+    SahlatDB.subscribeCompanies(function(all){
+      try{ SahlatStore.setItem('companies', JSON.stringify(all||[])); }catch{}
+      // re-render companies grid
+      const cList = Array.isArray(all)? all : [];
+      container.innerHTML = '';
+      if (!cList.length){ container.innerHTML = '<div class="form-help">لا توجد شركات مسجلة حالياً</div>'; return; }
+      for (const c of cList) {
+        const card = document.createElement('div');
+        card.className = 'company-card';
+        const logoSrc = (c && c.logo) ? c.logo : 'company-fallback.svg';
+        card.innerHTML = `
+          <img class="company-logo" src="${logoSrc}" alt="${(c&&c.name)||''}" onerror="this.onerror=null;this.src='company-fallback.svg'">
+          <div class="company-name">${(c&&c.name)||'—'}</div>
+        `;
+        container.appendChild(card);
+      }
+    });
+  })();
+
   // Edit photo flow
   const editBtn = document.getElementById('editPhotoBtn');
   const fileInput = document.getElementById('photoInput');
@@ -203,7 +228,13 @@
     const dataUrl = await new Promise((resolve)=>{ const fr = new FileReader(); fr.onload = ()=>resolve(fr.result||''); fr.readAsDataURL(file); });
   const prof = JSON.parse(SahlatStore.getItem('seekerProfile')||'{}');
     prof.photoUrl = dataUrl;
-    try{ localStorage.setItem('seekerProfile', JSON.stringify(prof)); }catch{}
+    // Persist locally and try syncing to Firestore
+    try{ SahlatStore.setItem('seekerProfile', JSON.stringify(prof)); }catch{}
+    try{
+      if (window.SahlatDB && SahlatDB.upsertSeeker){
+        await SahlatDB.upsertSeeker(Object.assign({}, p, { photoUrl: dataUrl }));
+      }
+    }catch(e){ /* ignore */ }
     document.getElementById('avatar').src = dataUrl;
     fileInput.value = '';
   });
@@ -244,6 +275,23 @@
   try{ SahlatStore.removeItem('currentSeekerId'); }catch{}
   try{ SahlatStore.removeItem('seekerProfile'); }catch{}
       window.location.href = 'seeker-login.html';
+    });
+  })();
+
+  // Share profile: builds an import link for other devices
+  (function(){
+    var btn = document.getElementById('shareProfile');
+    if (!btn || !p) return;
+    btn.addEventListener('click', async function(){
+      try{
+        var payload = { seeker: p };
+        var txt = JSON.stringify(payload);
+        var enc = encodeURIComponent(txt);
+        var url = location.origin + location.pathname.replace(/[^/]*$/, '') + 'import.html?data=' + enc;
+        if (navigator.share){ await navigator.share({ url, title: 'مشاركة ملف سهلات' }); }
+        else if (navigator.clipboard){ await navigator.clipboard.writeText(url); alert('تم نسخ رابط المشاركة. الصقه في الجهاز الآخر لفتح واستيراد سريع.'); }
+        else { prompt('انسخ الرابط التالي للمشاركة:', url); }
+      }catch(e){ alert('تعذر إنشاء رابط المشاركة'); }
     });
   })();
 </script>

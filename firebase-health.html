@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>فحص اتصال Firebase - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
+</head>
+<body class="center-header">
+  <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+  <main class="container">
+    <h1>فحص اتصال Firebase</h1>
+    <div class="form-card" id="card">
+      <div class="form-help">سيتم اختبار تحميل مكتبة Firebase وتكوين Firestore، ثم كتابة/قراءة مستند تجريبي.</div>
+      <div id="log" style="margin-top:8px; font-family:ui-monospace,Consolas,monospace; white-space:pre-wrap"></div>
+      <div class="actions" style="margin-top:12px">
+        <a class="btn" href="index.html">⬅️ رجوع</a>
+      </div>
+    </div>
+  </main>
+  <script>
+    const log = (m)=>{ const el=document.getElementById('log'); el.textContent += (m+"\n"); };
+    (async function(){
+      log('بدء الفحص…');
+      if (!window.FIREBASE_CONFIG){ log('❌ لم يتم العثور على الإعدادات في js/firebase-config.js'); return; }
+      log('✓ إعدادات موجودة');
+      // انتظر تهيئة firebase.js التي تضع window.SahlatDB
+      function waitFor(cond, timeout=8000){
+        return new Promise((res)=>{
+          const t0 = Date.now();
+          (function tick(){ if (cond()) return res(true); if (Date.now()-t0>timeout) return res(false); setTimeout(tick, 150); })();
+        });
+      }
+      const ok = await waitFor(()=> !!window.SahlatDB);
+      if (!ok){ log('❌ تعذر تحميل مكتبات Firebase (تحقق من الإنترنت وسياسات المتصفح)'); return; }
+      log('✓ تم تحميل مكتبات Firebase');
+      try{
+        const db = SahlatDB.db;
+        const pingId = 'health-' + Math.random().toString(36).slice(2);
+        await db.collection('health').doc(pingId).set({ t: Date.now(), ua: navigator.userAgent });
+        log('✓ تم الكتابة إلى مجموعة health');
+        const snap = await db.collection('health').doc(pingId).get();
+        if (snap.exists){ log('✓ القراءة ناجحة. Firestore يعمل بشكل سليم.'); }
+        else { log('⚠ تمت الكتابة لكن القراءة فشلت (تحقق من قواعد الحماية)'); }
+      }catch(e){
+        log('❌ خطأ أثناء الوصول لFirestore: ' + (e && e.message ? e.message : e));
+        log('تأكد من projectId وقواعد الحماية والسماح من الشبكة للجوال.');
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>استيراد سريع - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="js/storage.js"></script>
+</head>
+<body class="center-header">
+<header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+<main class="container">
+  <h1>استيراد سريع</h1>
+  <div class="form-card">
+    <div id="status" class="form-help">جاري معالجة الرابط…</div>
+    <div class="actions" style="margin-top:12px">
+      <a id="goHome" class="btn" href="index.html" style="display:none">العودة للرئيسية</a>
+      <a id="goCompany" class="btn" href="company-home.html" style="display:none">الذهاب للشركات</a>
+      <a id="goSeeker" class="btn" href="seeker-home.html" style="display:none">الذهاب لملفي</a>
+    </div>
+  </div>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  function norm(s){ return (s||'').trim().toLowerCase(); }
+  function makeId(key){ let h=0; for(const ch of (key||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 'x'+Math.abs(h); }
+  function getSeekers(){ try{ return JSON.parse(SahlatStore.getItem('seekers')||'[]') }catch{ return [] } }
+  function setSeekers(arr){ try{ SahlatStore.setItem('seekers', JSON.stringify(arr)); }catch{} }
+  function getCompanies(){ try{ return JSON.parse(SahlatStore.getItem('companies')||'[]') }catch{ return [] } }
+  function setCompanies(arr){ try{ SahlatStore.setItem('companies', JSON.stringify(arr)); }catch{} }
+  function mergeOne(arr, obj, type){
+    if (!obj) return arr;
+    const out = Array.isArray(arr) ? arr.slice() : [];
+    const phoneEmailKey = (o)=> `${norm(o.phone)}|${norm(o.email)}|${norm(o.nationalId)}`;
+    if (!obj.id){ obj.id = makeId(obj.email||obj.phone||obj.nationalId||obj.name||obj.fullName||Math.random().toString(36)); }
+    // if exists by id, replace; else if exists by contact, skip; else push
+    const idxById = out.findIndex(x=> x && x.id===obj.id);
+    const idxByContact = out.findIndex(x=> x && phoneEmailKey(x)===phoneEmailKey(obj));
+    if (idxById>=0) out[idxById] = obj;
+    else if (idxByContact>=0) { /* keep existing */ }
+    else out.push(obj);
+    return out;
+  }
+  function decodeDataParam(){
+    const u = new URL(location.href);
+    const dataParam = u.searchParams.get('data');
+    if (!dataParam) return null;
+    // Try URI decode then JSON
+    try{ const t = decodeURIComponent(dataParam); return JSON.parse(t); }catch(e){}
+    // Try base64
+    try{
+      const bin = atob(dataParam); // may throw
+      // decode UTF-8
+      const txt = decodeURIComponent(Array.prototype.map.call(bin, c=> '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      return JSON.parse(txt);
+    }catch(e){ return null; }
+  }
+  (function(){
+    const s = document.getElementById('status');
+    const payload = decodeDataParam();
+    if (!payload){ s.textContent = 'لم يتم العثور على بيانات صالحة في الرابط.'; document.getElementById('goHome').style.display='inline-flex'; return; }
+    let seekers = getSeekers();
+    let companies = getCompanies();
+    if (payload.seeker){ seekers = mergeOne(seekers, payload.seeker, 'seekers'); }
+    if (payload.company){ companies = mergeOne(companies, payload.company, 'companies'); }
+    if (Array.isArray(payload.seekers)){
+      for(const sk of payload.seekers){ seekers = mergeOne(seekers, sk, 'seekers'); }
+    }
+    if (Array.isArray(payload.companies)){
+      for(const co of payload.companies){ companies = mergeOne(companies, co, 'companies'); }
+    }
+    setSeekers(seekers); setCompanies(companies);
+    s.textContent = 'تم الاستيراد بنجاح. يمكنك الذهاب الآن.';
+    document.getElementById('goHome').style.display='inline-flex';
+    document.getElementById('goCompany').style.display='inline-flex';
+    document.getElementById('goSeeker').style.display='inline-flex';
+  })();
+</script>
+</body>
+</html>

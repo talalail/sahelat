@@ -7,6 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="js/storage.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
 </head>
 <body>
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -28,7 +30,7 @@
 <footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
-  document.getElementById('companyLoginForm').addEventListener('submit', (e)=>{
+  document.getElementById('companyLoginForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
   var acEl = document.getElementById('accessCode');
   var code = (acEl && acEl.value ? acEl.value : '').trim();
@@ -38,15 +40,27 @@
     var loginId = (idEl && idEl.value ? idEl.value : '').trim();
     var pass = (passEl && passEl.value ? passEl.value : '').trim();
     if (!loginId){ alert('يرجى إدخال رقم الجوال أو البريد'); return; }
-  var companies = [];
-  try{ companies = JSON.parse(SahlatStore.getItem('companies')||'[]'); }catch{}
-    var norm = function(s){ return (s||'').trim().toLowerCase(); };
-    var found = companies.find(function(c){ return norm(c.phone)===norm(loginId) || norm(c.email)===norm(loginId); });
+    var found = null;
+    try{
+      if (window.SahlatDB){ found = await SahlatDB.findCompanyByContact(loginId); }
+    }catch{}
+    if (!found){
+      var companies = [];
+      try{ companies = JSON.parse(SahlatStore.getItem('companies')||'[]'); }catch{}
+      var norm = function(s){ return (s||'').trim().toLowerCase(); };
+      found = companies.find(function(c){ return norm(c.phone)===norm(loginId) || norm(c.email)===norm(loginId); });
+    }
     if (!found){ alert('الحساب غير موجود. يرجى التسجيل أولاً.'); return; }
     if (found.password && pass && found.password !== pass){ alert('كلمة المرور غير صحيحة'); return; }
     try {
       SahlatStore.setItem('companyAccessOK', 'true');
       SahlatStore.setItem('currentCompany', JSON.stringify(found));
+      // Ensure local cache upsert
+      var companies = [];
+      try{ companies = JSON.parse(SahlatStore.getItem('companies')||'[]'); }catch{}
+      var idx = companies.findIndex(function(c){ return c && c.id===found.id; });
+      if (idx>=0) companies[idx]=found; else companies.push(found);
+      SahlatStore.setItem('companies', JSON.stringify(companies));
     } catch {}
     window.location.href = 'company-home.html';
   });

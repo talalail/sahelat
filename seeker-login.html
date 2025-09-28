@@ -7,6 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="js/storage.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
 </head>
 <body class="center-header">
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -33,7 +35,7 @@
 <footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
-  document.getElementById('seekerLoginForm').addEventListener('submit', function(e){
+  document.getElementById('seekerLoginForm').addEventListener('submit', async function(e){
     e.preventDefault();
     var idEl = document.getElementById('contact');
     var passEl = document.getElementById('password');
@@ -46,16 +48,30 @@
       return;
     }
     if (!loginId){ alert('يرجى إدخال رقم الجوال أو البريد'); return; }
-  var seekers = [];
-  try{ seekers = JSON.parse(SahlatStore.getItem('seekers')||'[]'); }catch{}
-    var norm = function(s){ return (s||'').trim().toLowerCase(); };
-    var found = seekers.find(function(s){ return norm(s.phone)===norm(loginId) || norm(s.email)===norm(loginId); });
+    var found = null;
+    try{
+      if (window.SahlatDB){
+        found = await SahlatDB.findSeekerByContact(loginId);
+      }
+    }catch{}
+    if (!found){
+      var seekers = [];
+      try{ seekers = JSON.parse(SahlatStore.getItem('seekers')||'[]'); }catch{}
+      var norm = function(s){ return (s||'').trim().toLowerCase(); };
+      found = seekers.find(function(s){ return norm(s.phone)===norm(loginId) || norm(s.email)===norm(loginId); });
+    }
   if (!found){ alert('الحساب غير موجود. يرجى التسجيل أولاً.'); return; }
   if (!found.password){ alert('لا توجد كلمة مرور محفوظة لهذا الحساب. يرجى التسجيل من جديد.'); return; }
   if (found.password !== pass){ alert('كلمة المرور غير صحيحة'); return; }
     try{
       SahlatStore.setItem('seekerProfile', JSON.stringify(found));
       if (found.id) SahlatStore.setItem('currentSeekerId', found.id);
+      // Ensure local cache upsert
+      var seekers = [];
+      try{ seekers = JSON.parse(SahlatStore.getItem('seekers')||'[]'); }catch{}
+      var idx = seekers.findIndex(function(s){ return s && s.id===found.id; });
+      if (idx>=0) seekers[idx]=found; else seekers.push(found);
+      SahlatStore.setItem('seekers', JSON.stringify(seekers));
     }catch{}
     window.location.href = 'seeker-home.html';
   });

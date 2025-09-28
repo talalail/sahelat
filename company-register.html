@@ -7,6 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="js/storage.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
 </head>
 <body>
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -87,8 +89,19 @@
     if (!file){ alert('الرجاء رفع شعار/لوقو للشركة'); return; }
     const logoDataUrl = await new Promise((res)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result||''); fr.readAsDataURL(file); });
     const company = { name, city: cityEl ? cityEl.value : '', phone, email, password, logo: logoDataUrl };
-    companies.push(company);
-    try {
+    try{
+      let id = '';
+      if (window.SahlatDB && SahlatDB.upsertCompany){
+        try{ id = await SahlatDB.upsertCompany(company); }catch(e){ /* offline fallback */ }
+      }
+      if (!id){
+        const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 'c'+Math.abs(h); };
+        id = makeId((company.email||'')+'|'+(company.phone||'')+'|'+company.name);
+      }
+      company.id = id;
+      // backup
+      const idx = companies.findIndex(c=> c && c.id===id);
+      if (idx>=0) companies[idx]=company; else companies.push(company);
       SahlatStore.setItem('companies', JSON.stringify(companies));
       SahlatStore.setItem('currentCompany', JSON.stringify(company));
     } catch {}

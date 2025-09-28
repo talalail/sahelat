@@ -7,6 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="js/storage.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
   <style>
     .detail-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:24px}
     @media (max-width: 900px){.detail-grid{grid-template-columns:1fr 1fr}}
@@ -64,73 +66,73 @@
 <footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
-  // find seeker by id from query param, fallback to active profile
+  // find seeker by id from query param, prefer Firestore, fallback to local
   const params = new URLSearchParams(location.search);
   const idQ = params.get('id');
   let p = null;
-  try{
-    const list = JSON.parse(SahlatStore.getItem('seekers')||'[]');
-    if (idQ){ p = list.find(s=> String(s.id||'') === String(idQ)); }
-  }catch{}
-  if(!p){ try{ p = JSON.parse(SahlatStore.getItem('seekerProfile')||'{}'); }catch{ p = {}; } }
+  (async function(){
+    if (idQ && window.SahlatDB){
+      try{
+        // Use subscription cache first
+        const list = JSON.parse(SahlatStore.getItem('seekers')||'[]');
+        p = list.find(s=> String(s.id||'') === String(idQ));
+        if (!p){
+          // direct doc fetch
+          const doc = await firebase.firestore().collection('seekers').doc(idQ).get();
+          if (doc && doc.exists) p = { id: doc.id, ...(doc.data()||{}) };
+        }
+      }catch{}
+    }
+    if(!p){ try{ p = JSON.parse(SahlatStore.getItem('seekerProfile')||'{}'); }catch{ p = {}; } }
 
-  if (p.photoUrl) document.getElementById('vAvatar').src = p.photoUrl;
-  document.getElementById('vName').textContent = p.fullName || '—';
-  const meta = [];
-  if (p.nationality) meta.push(p.nationality);
-  if (p.city) meta.push(p.city);
-  if (p.age) meta.push(p.age + ' سنة');
-  document.getElementById('vMeta').textContent = meta.join(' • ') || '—';
-
-  // Fill fields
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = (val && String(val).trim()) || '-'; };
-  set('kFirst', p.firstName);
-  set('kMiddle', p.middleName);
-  set('kLast', p.lastName);
-  set('kEmail', p.email);
-  set('kPhone', p.phone);
-  set('kNationality', p.nationality);
-  // National ID: hidden by default, click to reveal
-  (function(){
-    const idEl = document.getElementById('kId');
-    const idVal = (p.nationalId || '').toString().trim();
-    if (!idVal){ idEl.textContent='-'; idEl.style.cursor='default'; idEl.removeAttribute('role'); idEl.removeAttribute('tabindex'); idEl.title=''; return; }
-    let shown = false;
-    const mask = '•'.repeat(Math.min(idVal.length || 10, 12));
-    function render(){ idEl.textContent = shown ? idVal : mask; }
-    function toggle(){ shown = !shown; render(); }
-    idEl.addEventListener('click', toggle);
-    idEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); }});
-    render();
+    renderView(p||{});
   })();
-  set('kCity', p.city);
-  set('kAge', p.age || (p.dob ? '' : '-'));
-  set('kAbout', p.about);
-  // Jobs chips
-  const jobsC = document.getElementById('kJobs');
-  jobsC.innerHTML = '';
-  if (Array.isArray(p.jobs) && p.jobs.length){
-    for(const j of p.jobs){
-      const s = document.createElement('span'); s.className = 'chip'; s.textContent = j; jobsC.appendChild(s);
-    }
-  } else { jobsC.textContent = '-'; }
-  // Certificates (support data URLs created at registration)
-  const certsC = document.getElementById('kCerts');
-  certsC.innerHTML = '';
-  if (Array.isArray(p.certificates) && p.certificates.length){
-    for(const c of p.certificates){
-      var name = (c && typeof c==='object' && c.name) ? c.name : (typeof c==='string' ? c : 'ملف');
-      var href = (c && typeof c==='object' && c.dataUrl) ? c.dataUrl : '';
-      var el;
-      if (href){
-        el = document.createElement('a'); el.href = href; el.target = '_blank'; el.rel='noopener'; el.className='file'; el.textContent = name; el.setAttribute('download', name);
-      } else {
-        el = document.createElement('span'); el.className='file'; el.textContent = name;
+  function renderView(p){
+    if (p.photoUrl) document.getElementById('vAvatar').src = p.photoUrl;
+    document.getElementById('vName').textContent = p.fullName || '—';
+    const meta = [];
+    if (p.nationality) meta.push(p.nationality);
+    if (p.city) meta.push(p.city);
+    if (p.age) meta.push(p.age + ' سنة');
+    document.getElementById('vMeta').textContent = meta.join(' • ') || '—';
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = (val && String(val).trim()) || '-'; };
+    set('kFirst', p.firstName);
+    set('kMiddle', p.middleName);
+    set('kLast', p.lastName);
+    set('kEmail', p.email);
+    set('kPhone', p.phone);
+    set('kNationality', p.nationality);
+    (function(){
+      const idEl = document.getElementById('kId');
+      const idVal = (p.nationalId || '').toString().trim();
+      if (!idVal){ idEl.textContent='-'; idEl.style.cursor='default'; idEl.removeAttribute('role'); idEl.removeAttribute('tabindex'); idEl.title=''; return; }
+      let shown = false; const mask = '•'.repeat(Math.min(idVal.length || 10, 12));
+      function render(){ idEl.textContent = shown ? idVal : mask; }
+      function toggle(){ shown = !shown; render(); }
+      idEl.addEventListener('click', toggle);
+      idEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); }});
+      render();
+    })();
+    set('kCity', p.city);
+    set('kAge', p.age || (p.dob ? '' : '-'));
+    set('kAbout', p.about);
+    const jobsC = document.getElementById('kJobs');
+    jobsC.innerHTML = '';
+    if (Array.isArray(p.jobs) && p.jobs.length){
+      for(const j of p.jobs){ const s = document.createElement('span'); s.className = 'chip'; s.textContent = j; jobsC.appendChild(s); }
+    } else { jobsC.textContent = '-'; }
+    const certsC = document.getElementById('kCerts');
+    certsC.innerHTML = '';
+    if (Array.isArray(p.certificates) && p.certificates.length){
+      for(const c of p.certificates){
+        var name = (c && typeof c==='object' && c.name) ? c.name : (typeof c==='string' ? c : 'ملف');
+        var href = (c && typeof c==='object' && c.dataUrl) ? c.dataUrl : '';
+        var el;
+        if (href){ el = document.createElement('a'); el.href = href; el.target = '_blank'; el.rel='noopener'; el.className='file'; el.textContent = name; el.setAttribute('download', name); }
+        else { el = document.createElement('span'); el.className='file'; el.textContent = name; }
+        certsC.appendChild(el);
       }
-      certsC.appendChild(el);
-    }
-  } else {
-    certsC.innerHTML = '<span class="form-help">-</span>'
+    } else { certsC.innerHTML = '<span class="form-help">-</span>'; }
   }
 </script>
 </body>
