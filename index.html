@@ -7,6 +7,7 @@
     <meta name="description" content="سهلات: منصة تربط الشركات بالباحثين عن عمل بسهولة وسرعة" />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=20250927-1" />
+  <script src="js/storage.js"></script>
   </head>
   <body class="home">
     <header class="site-header">
@@ -125,7 +126,7 @@
       setInterval(cycle, 2600);
       }
       // Footer stats: seekers and companies count
-      function safeLen(key){ try{ const a = JSON.parse(localStorage.getItem(key)||'[]'); return Array.isArray(a)? a.length : 0; }catch{ return 0; } }
+  function safeLen(key){ try{ const a = JSON.parse(SahlatStore.getItem(key)||'[]'); return Array.isArray(a)? a.length : 0; }catch{ return 0; } }
       const fmt = (n)=> (typeof n==='number'? n : 0).toLocaleString('ar-SA');
       const sCount = safeLen('seekers');
       const cCount = safeLen('companies');

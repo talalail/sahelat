@@ -6,6 +6,7 @@
   <title>إعدادات الباحث - سهلات</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="js/storage.js"></script>
 </head>
 <body class="center-header">
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -85,8 +86,8 @@
   // Load strictly by currentSeekerId
   let p = {};
   try{
-    const curId = localStorage.getItem('currentSeekerId')||'';
-    const arr = JSON.parse(localStorage.getItem('seekers')||'[]');
+    const curId = SahlatStore.getItem('currentSeekerId')||'';
+    const arr = JSON.parse(SahlatStore.getItem('seekers')||'[]');
     if (curId){ const f = arr.find(s=> s && s.id===curId); if (f) p = f; }
   }catch{}
   if (!p || !p.id){
@@ -191,8 +192,8 @@
       if (!p.phone && !p.email){ alert('يرجى إدخال رقم الجوال أو البريد الإلكتروني'); return; }
       // Upsert into global seekers for company browsing and preserve id
       const key = p.email || p.phone || p.nationalId || p.fullName;
-      let seekers = [];
-      try { seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); } catch {}
+  let seekers = [];
+  try { seekers = JSON.parse(SahlatStore.getItem('seekers')||'[]'); } catch {}
       // enforce uniqueness across other profiles
       const norm = (s)=> (s||'').trim().toLowerCase();
       const dupe = seekers.find(x=> x && x.id!==p.id && ((p.phone && norm(x.phone)===norm(p.phone)) || (p.email && norm(x.email)===norm(p.email)) || (p.nationalId && norm(x.nationalId)===norm(p.nationalId))));
@@ -201,16 +202,16 @@
       const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 's'+Math.abs(h); };
       if (idx >= 0) { p.id = seekers[idx].id || makeId(key); seekers[idx] = p; }
       else { p.id = makeId(key); seekers.push(p); }
-      localStorage.setItem('seekers', JSON.stringify(seekers));
-      localStorage.setItem('seekerProfile', JSON.stringify(p));
-      if (p.id) localStorage.setItem('currentSeekerId', p.id);
+  SahlatStore.setItem('seekers', JSON.stringify(seekers));
+  SahlatStore.setItem('seekerProfile', JSON.stringify(p));
+  if (p.id) SahlatStore.setItem('currentSeekerId', p.id);
     } catch {}
     alert('تم الحفظ');
     window.location.href = 'seeker-home.html';
   });
   document.getElementById('clearData').addEventListener('click', ()=>{
     if(confirm('هل تريد مسح بياناتك المخزنة على هذا المتصفح؟')){
-      try{ localStorage.removeItem('seekerProfile'); }catch{}
+  try{ SahlatStore.removeItem('seekerProfile'); }catch{}
       alert('تم المسح');
       window.location.href = 'seeker-home.html';
     }

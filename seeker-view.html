@@ -6,6 +6,7 @@
   <title>ملف الباحث - عرض للشركة - سهلات</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="js/storage.js"></script>
   <style>
     .detail-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:24px}
     @media (max-width: 900px){.detail-grid{grid-template-columns:1fr 1fr}}
@@ -68,10 +69,10 @@
   const idQ = params.get('id');
   let p = null;
   try{
-    const list = JSON.parse(localStorage.getItem('seekers')||'[]');
+    const list = JSON.parse(SahlatStore.getItem('seekers')||'[]');
     if (idQ){ p = list.find(s=> String(s.id||'') === String(idQ)); }
   }catch{}
-  if(!p){ try{ p = JSON.parse(localStorage.getItem('seekerProfile')||'{}'); }catch{ p = {}; } }
+  if(!p){ try{ p = JSON.parse(SahlatStore.getItem('seekerProfile')||'{}'); }catch{ p = {}; } }
 
   if (p.photoUrl) document.getElementById('vAvatar').src = p.photoUrl;
   document.getElementById('vName').textContent = p.fullName || '—';
