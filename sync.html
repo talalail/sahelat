@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>مزامنة البيانات - سهلات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .two{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+    @media (max-width: 800px){.two{grid-template-columns:1fr}}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px}
+  </style>
+</head>
+<body class="center-header">
+<header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
+<main class="container">
+  <h1>مزامنة البيانات بين الأجهزة</h1>
+  <p class="form-help">هذه الصفحة تساعدك تنقل البيانات بين الجوال والكمبيوتر بدون سيرفر. صدِّر نسخة من البيانات كملف أو نص، ثم استوردها في الجهاز الآخر.</p>
+  <div class="two">
+    <section class="form-card">
+      <h3 style="margin:0 0 10px">تصدير البيانات</h3>
+      <p class="form-help">سيتم تضمين الباحثين والشركات فقط.</p>
+      <div class="actions" style="margin:10px 0">
+        <button id="btnExportFile" class="btn btn--primary" type="button">تنزيل ملف JSON</button>
+        <button id="btnCopyText" class="btn" type="button">نسخ كنص</button>
+      </div>
+      <textarea id="exportText" class="mono" style="width:100%; min-height:140px" readonly></textarea>
+    </section>
+    <section class="form-card">
+      <h3 style="margin:0 0 10px">استيراد البيانات</h3>
+      <p class="form-help">اختر ملف JSON أو الصق النص أدناه، ثم اضغط استيراد. سيتم دمج البيانات وتجنب التكرار بالمعرّف أو بالهاتف/الإيميل/الهوية.</p>
+      <input id="fileInput" type="file" accept="application/json" />
+      <textarea id="importText" class="mono" style="width:100%; min-height:140px; margin-top:8px" placeholder="الصق هنا محتوى JSON للتصدير"></textarea>
+      <div class="actions" style="margin-top:10px">
+        <button id="btnImport" class="btn btn--primary" type="button">استيراد الآن</button>
+        <a class="btn" href="index.html">⬅️ رجوع</a>
+      </div>
+      <div id="importResult" class="form-help" style="margin-top:8px"></div>
+    </section>
+  </div>
+</main>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
+  function getSeekers(){ try{ return JSON.parse(localStorage.getItem('seekers')||'[]') }catch{ return [] } }
+  function setSeekers(arr){ try{ localStorage.setItem('seekers', JSON.stringify(arr)); }catch{} }
+  function getCompanies(){ try{ return JSON.parse(localStorage.getItem('companies')||'[]') }catch{ return [] } }
+  function setCompanies(arr){ try{ localStorage.setItem('companies', JSON.stringify(arr)); }catch{} }
+  function makeId(key){ let h=0; for(const ch of (key||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 'x'+Math.abs(h); }
+  function norm(s){ return (s||'').trim().toLowerCase(); }
+
+  function buildExport(){
+    const data = {
+      seekers: getSeekers(),
+      companies: getCompanies()
+    };
+    return JSON.stringify(data, null, 2);
+  }
+
+  // Prefill export text
+  const exportText = document.getElementById('exportText');
+  exportText.value = buildExport();
+
+  document.getElementById('btnExportFile').addEventListener('click', ()=>{
+    const blob = new Blob([buildExport()], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'sahlat-backup.json'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  });
+  document.getElementById('btnCopyText').addEventListener('click', async ()=>{
+    try{ await navigator.clipboard.writeText(buildExport()); alert('تم النسخ إلى الحافظة'); }catch{ alert('لم يتم النسخ تلقائياً — يمكنك تحديد النص ونسخه يدوياً'); }
+  });
+
+  // Import
+  const fileInput = document.getElementById('fileInput');
+  const importText = document.getElementById('importText');
+  const importResult = document.getElementById('importResult');
+
+  fileInput.addEventListener('change', ()=>{
+    const f = fileInput.files && fileInput.files[0]; if (!f) return;
+    const fr = new FileReader(); fr.onload = ()=>{ importText.value = fr.result || ''; }; fr.readAsText(f);
+  });
+
+  function mergeArrays(existing, incoming, type){
+    const out = Array.isArray(existing) ? existing.slice() : [];
+    const byId = new Map();
+    const phoneEmailKey = (o)=> `${norm(o.phone)}|${norm(o.email)}|${norm(o.nationalId)}`;
+    // index existing
+    for(const e of out){ if (!e) continue; if (!e.id){ e.id = makeId((e.email||e.phone||e.nationalId||e.name||e.fullName||Math.random().toString(36))); } byId.set(e.id, e); }
+    const seenContact = new Set(out.map(o=> phoneEmailKey(o)));
+    // merge incoming
+    for(const inc of (incoming||[])){
+      if (!inc) continue;
+      if (!inc.id){ inc.id = makeId((inc.email||inc.phone||inc.nationalId||inc.name||inc.fullName||Math.random().toString(36))); }
+      const key = phoneEmailKey(inc);
+      if (byId.has(inc.id)){
+        // Replace existing with incoming (to bring latest from الجهاز الآخر)
+        byId.set(inc.id, inc);
+      } else if (seenContact.has(key)){
+        // Skip duplicate by contact
+        continue;
+      } else {
+        byId.set(inc.id, inc); seenContact.add(key);
+      }
+    }
+    return Array.from(byId.values());
+  }
+
+  document.getElementById('btnImport').addEventListener('click', ()=>{
+    let parsed = null;
+    try{ parsed = JSON.parse(importText.value || ''); }catch(e){ alert('صيغة JSON غير صحيحة'); return; }
+    if (!parsed || (typeof parsed !== 'object')){ alert('لا توجد بيانات'); return; }
+    const curS = getSeekers();
+    const curC = getCompanies();
+    const newS = mergeArrays(curS, parsed.seekers, 'seekers');
+    const newC = mergeArrays(curC, parsed.companies, 'companies');
+    setSeekers(newS); setCompanies(newC);
+    importResult.textContent = `تم الدمج: الباحثون (${curS.length} -> ${newS.length})، الشركات (${curC.length} -> ${newC.length}).`;
+    alert('تم الاستيراد والدمج بنجاح');
+  });
+</script>
+</body>
+</html>
