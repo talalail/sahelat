@@ -6,6 +6,7 @@
   <title>تسجيل شركة جديدة - سهلات</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="js/storage.js"></script>
 </head>
 <body>
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -76,8 +77,8 @@
     const email = (document.getElementById('companyEmail').value||'').trim();
     const password = (document.getElementById('companyPass').value||'').trim();
     if (!phone && !email){ alert('يرجى إدخال رقم الجوال أو البريد الإلكتروني'); return; }
-    try { localStorage.setItem('companyAccessOK', 'true'); } catch {}
-    const companies = JSON.parse(localStorage.getItem('companies')||'[]');
+  try { SahlatStore.setItem('companyAccessOK', 'true'); } catch {}
+  const companies = JSON.parse(SahlatStore.getItem('companies')||'[]');
     const norm = (s)=> (s||'').trim().toLowerCase();
     const exists = companies.some(c=> (phone && norm(c.phone)===norm(phone)) || (email && norm(c.email)===norm(email)) );
     if (exists){ alert('هذا الرقم أو البريد مسجّل مسبقاً'); return; }
@@ -88,8 +89,8 @@
     const company = { name, city: cityEl ? cityEl.value : '', phone, email, password, logo: logoDataUrl };
     companies.push(company);
     try {
-      localStorage.setItem('companies', JSON.stringify(companies));
-      localStorage.setItem('currentCompany', JSON.stringify(company));
+      SahlatStore.setItem('companies', JSON.stringify(companies));
+      SahlatStore.setItem('currentCompany', JSON.stringify(company));
     } catch {}
     window.location.href = 'company-home.html';
   });

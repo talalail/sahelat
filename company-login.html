@@ -6,6 +6,7 @@
   <title>تسجيل دخول الشركة - سهلات</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="js/storage.js"></script>
 </head>
 <body>
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -37,15 +38,15 @@
     var loginId = (idEl && idEl.value ? idEl.value : '').trim();
     var pass = (passEl && passEl.value ? passEl.value : '').trim();
     if (!loginId){ alert('يرجى إدخال رقم الجوال أو البريد'); return; }
-    var companies = [];
-    try{ companies = JSON.parse(localStorage.getItem('companies')||'[]'); }catch{}
+  var companies = [];
+  try{ companies = JSON.parse(SahlatStore.getItem('companies')||'[]'); }catch{}
     var norm = function(s){ return (s||'').trim().toLowerCase(); };
     var found = companies.find(function(c){ return norm(c.phone)===norm(loginId) || norm(c.email)===norm(loginId); });
     if (!found){ alert('الحساب غير موجود. يرجى التسجيل أولاً.'); return; }
     if (found.password && pass && found.password !== pass){ alert('كلمة المرور غير صحيحة'); return; }
     try {
-      localStorage.setItem('companyAccessOK', 'true');
-      localStorage.setItem('currentCompany', JSON.stringify(found));
+      SahlatStore.setItem('companyAccessOK', 'true');
+      SahlatStore.setItem('currentCompany', JSON.stringify(found));
     } catch {}
     window.location.href = 'company-home.html';
   });

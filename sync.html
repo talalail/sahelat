@@ -6,6 +6,7 @@
   <title>مزامنة البيانات - سهلات</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="js/storage.js"></script>
   <style>
     .two{display:grid; grid-template-columns:1fr 1fr; gap:14px}
     @media (max-width: 800px){.two{grid-template-columns:1fr}}
@@ -43,10 +44,10 @@
 <footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
-  function getSeekers(){ try{ return JSON.parse(localStorage.getItem('seekers')||'[]') }catch{ return [] } }
-  function setSeekers(arr){ try{ localStorage.setItem('seekers', JSON.stringify(arr)); }catch{} }
-  function getCompanies(){ try{ return JSON.parse(localStorage.getItem('companies')||'[]') }catch{ return [] } }
-  function setCompanies(arr){ try{ localStorage.setItem('companies', JSON.stringify(arr)); }catch{} }
+  function getSeekers(){ try{ return JSON.parse(SahlatStore.getItem('seekers')||'[]') }catch{ return [] } }
+  function setSeekers(arr){ try{ SahlatStore.setItem('seekers', JSON.stringify(arr)); }catch{} }
+  function getCompanies(){ try{ return JSON.parse(SahlatStore.getItem('companies')||'[]') }catch{ return [] } }
+  function setCompanies(arr){ try{ SahlatStore.setItem('companies', JSON.stringify(arr)); }catch{} }
   function makeId(key){ let h=0; for(const ch of (key||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 'x'+Math.abs(h); }
   function norm(s){ return (s||'').trim().toLowerCase(); }
 

@@ -6,6 +6,7 @@
   <title>تسجيل باحث جديد - سهلات</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="js/storage.js"></script>
 </head>
 <body class="center-header">
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -224,8 +225,8 @@
       if (!profile.phone && !profile.email){ alert('يرجى إدخال رقم الجوال أو البريد الإلكتروني'); return; }
   // Uniqueness check on seekers list for phone/email/nationalId
       const norm = (s)=> (s||'').trim().toLowerCase();
-      let seekers = [];
-      try { seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); } catch {}
+  let seekers = [];
+  try { seekers = JSON.parse(SahlatStore.getItem('seekers')||'[]'); } catch {}
   const duplicate = seekers.find(s => (profile.phone && norm(s.phone)===norm(profile.phone)) || (profile.email && norm(s.email)===norm(profile.email)) || (profile.nationalId && norm(s.nationalId)===norm(profile.nationalId)) );
       if (duplicate){ alert('هذا الرقم أو البريد مسجّل مسبقاً'); return; }
       // helper to create a stable id from a key
@@ -238,9 +239,9 @@
       profile.id = makeId(key);
       seekers.push(profile);
   // Save active profile too
-  localStorage.setItem('seekerProfile', JSON.stringify(profile));
-  localStorage.setItem('currentSeekerId', profile.id);
-  localStorage.setItem('seekers', JSON.stringify(seekers));
+  SahlatStore.setItem('seekerProfile', JSON.stringify(profile));
+  SahlatStore.setItem('currentSeekerId', profile.id);
+  SahlatStore.setItem('seekers', JSON.stringify(seekers));
     } catch {}
     try { window.location.assign('seeker-home.html'); } catch (navErr) { window.location.href = 'seeker-home.html'; }
   });

@@ -11,6 +11,7 @@
     #seekRot{display:inline-block; opacity:0; transform:translateY(6px); transition: opacity .35s ease, transform .35s ease; color:#334155}
     #seekRot.show{opacity:1; transform:translateY(0)}
   </style>
+  <script src="js/storage.js"></script>
 </head>
 <body class="center-header">
 <header class="site-header"><div class="container"><div class="brand">سهلات</div></div></header>
@@ -88,21 +89,21 @@
     try{
       const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 's'+Math.abs(h); };
       let seekers = [];
-      try{ seekers = JSON.parse(localStorage.getItem('seekers')||'[]'); }catch{}
+      try{ seekers = JSON.parse(SahlatStore.getItem('seekers')||'[]'); }catch{}
       if (!Array.isArray(seekers)) seekers = [];
-      const curId = (localStorage.getItem('currentSeekerId')||'').trim();
+      const curId = ((SahlatStore.getItem('currentSeekerId'))||'').trim();
       // 1) Try find by currentSeekerId
       if (curId){ p = seekers.find(s=> s && s.id===curId) || null; }
       // 2) If not found, ensure IDs for any legacy seekers and retry
       if (!p){
         let mutated=false;
         for (const s of seekers){ if (s && !s.id){ const key=s.email||s.phone||s.nationalId||s.fullName||Math.random().toString(36); s.id = makeId(key); mutated=true; } }
-        if (mutated){ try{ localStorage.setItem('seekers', JSON.stringify(seekers)); }catch{} }
+  if (mutated){ try{ SahlatStore.setItem('seekers', JSON.stringify(seekers)); }catch{} }
         if (curId){ p = seekers.find(s=> s && s.id===curId) || null; }
       }
       // 3) If still not found, try to seed from seekerProfile and set session
       if (!p){
-        let sp=null; try{ sp = JSON.parse(localStorage.getItem('seekerProfile')||'null'); }catch{}
+  let sp=null; try{ sp = JSON.parse(SahlatStore.getItem('seekerProfile')||'null'); }catch{}
         if (sp && (sp.fullName || sp.email || sp.phone || sp.nationalId)){
           if (!sp.id){ const key=sp.email||sp.phone||sp.nationalId||sp.fullName; sp.id = makeId(key); }
           // upsert into seekers by id (or contact info)
@@ -114,8 +115,8 @@
           if (idxById>=0) seekers[idxById] = sp;
           else if (idxByContact>=0) seekers[idxByContact] = sp;
           else seekers.push(sp);
-          try{ localStorage.setItem('seekers', JSON.stringify(seekers)); }catch{}
-          try{ localStorage.setItem('currentSeekerId', sp.id); }catch{}
+          try{ SahlatStore.setItem('seekers', JSON.stringify(seekers)); }catch{}
+          try{ SahlatStore.setItem('currentSeekerId', sp.id); }catch{}
           p = sp;
         }
       }
@@ -165,15 +166,15 @@
   // Companies list
   const container = document.getElementById('companies');
   let companies = [];
-  try{ companies = JSON.parse(localStorage.getItem('companies')||'[]'); }catch{}
+  try{ companies = JSON.parse(SahlatStore.getItem('companies')||'[]'); }catch{}
   if (!Array.isArray(companies)) companies = [];
   // Seed from currentCompany if list is empty
   try{
     if (companies.length===0){
-      const cur = JSON.parse(localStorage.getItem('currentCompany')||'null');
+  const cur = JSON.parse(SahlatStore.getItem('currentCompany')||'null');
       if (cur && (cur.name || cur.logo)){
         companies = [cur];
-        try{ localStorage.setItem('companies', JSON.stringify(companies)); }catch{}
+  try{ SahlatStore.setItem('companies', JSON.stringify(companies)); }catch{}
       }
     }
   }catch{}
@@ -200,7 +201,7 @@
     const file = fileInput.files && fileInput.files[0];
     if (!file) return;
     const dataUrl = await new Promise((resolve)=>{ const fr = new FileReader(); fr.onload = ()=>resolve(fr.result||''); fr.readAsDataURL(file); });
-    const prof = JSON.parse(localStorage.getItem('seekerProfile')||'{}');
+  const prof = JSON.parse(SahlatStore.getItem('seekerProfile')||'{}');
     prof.photoUrl = dataUrl;
     try{ localStorage.setItem('seekerProfile', JSON.stringify(prof)); }catch{}
     document.getElementById('avatar').src = dataUrl;
@@ -240,8 +241,8 @@
     var out = document.getElementById('seekerLogout');
     if (!out) return;
     out.addEventListener('click', function(){
-      try{ localStorage.removeItem('currentSeekerId'); }catch{}
-      try{ localStorage.removeItem('seekerProfile'); }catch{}
+  try{ SahlatStore.removeItem('currentSeekerId'); }catch{}
+  try{ SahlatStore.removeItem('seekerProfile'); }catch{}
       window.location.href = 'seeker-login.html';
     });
   })();

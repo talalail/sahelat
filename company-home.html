@@ -6,6 +6,7 @@
   <title>لوحة الشركة - سهلات</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="js/storage.js"></script>
   <style>
     .filters{display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr; gap:10px}
     @media (max-width: 900px){.filters{grid-template-columns:1fr 1fr}}
@@ -133,7 +134,7 @@
   document.getElementById('y').textContent = new Date().getFullYear();
   // Gate access: require prior company access approval
   try{
-    const ok = localStorage.getItem('companyAccessOK') === 'true';
+    const ok = (SahlatStore.getItem('companyAccessOK') === 'true');
     if (!ok){
       alert('الدخول للشركات يتطلب رمز دخول. سيتم تحويلك لصفحة تسجيل الدخول.');
       window.location.href = 'company-login.html';
@@ -219,7 +220,7 @@
     }
   }
   function apply(){
-    let arr=[]; try{ arr = JSON.parse(localStorage.getItem('seekers')||'[]'); }catch{}
+  let arr=[]; try{ arr = JSON.parse(SahlatStore.getItem('seekers')||'[]'); }catch{}
     // Ensure each seeker has an id (for older saved data)
     const makeId = (keyStr) => { let h=0; for(const ch of (keyStr||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 's'+Math.abs(h); };
     let mutated = false;
@@ -279,17 +280,17 @@
   const cancelBtn = document.getElementById('cancelCompanyBtn');
 
   function makeId(key){ let h=0; for(const ch of (key||'')){ h=((h<<5)-h)+ch.charCodeAt(0); h|=0;} return 'c'+Math.abs(h); }
-  function getCompanies(){ try{ return JSON.parse(localStorage.getItem('companies')||'[]') }catch{ return [] } }
-  function setCompanies(arr){ try{ localStorage.setItem('companies', JSON.stringify(arr)); }catch{} }
+  function getCompanies(){ try{ return JSON.parse(SahlatStore.getItem('companies')||'[]') }catch{ return [] } }
+  function setCompanies(arr){ try{ SahlatStore.setItem('companies', JSON.stringify(arr)); }catch{} }
   function getCurrentCompany(){
     try{
-      const cur = JSON.parse(localStorage.getItem('currentCompany')||'null');
+      const cur = JSON.parse(SahlatStore.getItem('currentCompany')||'null');
       if (cur && cur.name) return cur;
       const arr = getCompanies();
       return arr.length ? arr[arr.length-1] : null;
     }catch{ return null }
   }
-  function setCurrentCompany(obj){ try{ localStorage.setItem('currentCompany', JSON.stringify(obj)); }catch{} }
+  function setCurrentCompany(obj){ try{ SahlatStore.setItem('currentCompany', JSON.stringify(obj)); }catch{} }
 
   function openEditor(){
     const data = getCurrentCompany() || {};
