@@ -58,7 +58,32 @@
       var seekers = [];
       try{ seekers = JSON.parse(SahlatStore.getItem('seekers')||'[]'); }catch{}
       var norm = function(s){ return (s||'').trim().toLowerCase(); };
-      found = seekers.find(function(s){ return norm(s.phone)===norm(loginId) || norm(s.email)===norm(loginId); });
+  var toAsciiDigits = function(str){ return (str||'').replace(/[\u0660-\u0669\u06F0-\u06F9]/g, function(ch){ var code=ch.charCodeAt(0); if(code>=0x0660 && code<=0x0669) return String(code-0x0660); if(code>=0x06F0 && code<=0x06F9) return String(code-0x06F0); return ch; }); };
+  var digits = function(s){ return toAsciiDigits(s).replace(/\D/g,''); };
+      var idLower = norm(loginId);
+      var idDigits = digits(loginId);
+      found = seekers.find(function(s){
+        var pLower = norm(s.phone);
+        var pDigits = digits(s.phone);
+        var eLower = norm(s.email);
+        var nid = (s.nationalId||'').trim();
+        return (pLower && pLower===idLower) || (eLower && eLower===idLower) || (nid && nid===loginId) || (idDigits && pDigits && idDigits===pDigits);
+      });
+      if (!found){
+        // fallback to single profile cache
+        try{
+          var sp = JSON.parse(SahlatStore.getItem('seekerProfile')||'null');
+          if (sp){
+            var pLower2 = norm(sp.phone);
+            var pDigits2 = digits(sp.phone);
+            var eLower2 = norm(sp.email);
+            var nid2 = (sp.nationalId||'').trim();
+            if ((pLower2 && pLower2===idLower) || (eLower2 && eLower2===idLower) || (nid2 && nid2===loginId) || (idDigits && pDigits2 && idDigits===pDigits2)){
+              found = sp;
+            }
+          }
+        }catch{}
+      }
     }
   if (!found){ alert('الحساب غير موجود. يرجى التسجيل أولاً.'); return; }
   if (!found.password){ alert('لا توجد كلمة مرور محفوظة لهذا الحساب. يرجى التسجيل من جديد.'); return; }

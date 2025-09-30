@@ -171,16 +171,6 @@
   let companies = [];
   try{ companies = JSON.parse(SahlatStore.getItem('companies')||'[]'); }catch{}
   if (!Array.isArray(companies)) companies = [];
-  // Seed from currentCompany if list is empty
-  try{
-    if (companies.length===0){
-  const cur = JSON.parse(SahlatStore.getItem('currentCompany')||'null');
-      if (cur && (cur.name || cur.logo)){
-        companies = [cur];
-  try{ SahlatStore.setItem('companies', JSON.stringify(companies)); }catch{}
-      }
-    }
-  }catch{}
   if (companies.length===0) {
     container.innerHTML = '<div class="form-help">لا توجد شركات مسجلة حالياً</div>';
   } else {
@@ -201,7 +191,6 @@
     if (!window.SahlatDB) return;
     SahlatDB.subscribeCompanies(function(all){
       try{ SahlatStore.setItem('companies', JSON.stringify(all||[])); }catch{}
-      // re-render companies grid
       const cList = Array.isArray(all)? all : [];
       container.innerHTML = '';
       if (!cList.length){ container.innerHTML = '<div class="form-help">لا توجد شركات مسجلة حالياً</div>'; return; }

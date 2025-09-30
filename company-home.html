@@ -87,7 +87,7 @@
   </section>
 
   <section style="margin-top:14px">
-    <div id="resultsMeta" class="actions" style="display:none; justify-content:space-between; align-items:center; margin-bottom:8px">
+  <div id="resultsMeta" class="actions" style="display:none; justify-content:space-between; align-items:center; margin-bottom:8px">
       <div class="form-help" id="resultsCount">النتائج: 0</div>
       <button id="clearFilters" class="btn btn--secondary" type="button">مسح الفلاتر</button>
     </div>
@@ -129,7 +129,7 @@
         <button id="cancelCompanyBtn" class="btn" type="button">إلغاء</button>
       </div>
     </div>
-    <div id="results" class="form-card" style="display:none"></div>
+  <div id="results" class="form-card" style="display:none"></div>
   </section>
 </main>
 <footer class="site-footer"><div class="container">© <span id="y"></span> سهلات · <a class="btn" href="sync.html" style="padding:6px 10px">مزامنة البيانات</a></div></footer>
@@ -215,8 +215,8 @@
       if (Array.isArray(s.jobs)){
         for(const j of s.jobs){ const span=document.createElement('span'); span.className='chip-gray'; span.textContent=j; jobs.appendChild(span); }
       }
-  const actions = document.createElement('div'); actions.className='actions'; actions.style.marginTop='8px';
-  const view = document.createElement('a'); view.className='btn btn--primary'; view.textContent='عرض الملف'; view.href='seeker-view.html?id=' + encodeURIComponent(s.id||'');
+      const actions = document.createElement('div'); actions.className='actions'; actions.style.marginTop='8px';
+      const view = document.createElement('a'); view.className='btn btn--primary'; view.textContent='عرض الملف'; view.href='seeker-view.html?id=' + encodeURIComponent(s.id||'');
       actions.appendChild(view);
       box.append(name, help, jobs, actions);
       card.append(img, box); results.appendChild(card);
@@ -272,14 +272,12 @@
   els.maxAge.addEventListener('input', apply);
   apply();
 
-  // Live Firestore subscription
+  // Live Firestore subscription (job_seekers)
   (function(){
     if (!window.SahlatDB) return;
     SahlatDB.subscribeSeekers(function(all){
       LIVE_SEEKERS = Array.isArray(all) ? all : [];
-      // update local backup
       try{ SahlatStore.setItem('seekers', JSON.stringify(LIVE_SEEKERS)); }catch{}
-      // re-apply filters if browsing is visible
       if (seekersVisible){ apply(); }
     });
   })();

@@ -77,8 +77,8 @@
         const list = JSON.parse(SahlatStore.getItem('seekers')||'[]');
         p = list.find(s=> String(s.id||'') === String(idQ));
         if (!p){
-          // direct doc fetch
-          const doc = await firebase.firestore().collection('seekers').doc(idQ).get();
+          // direct doc fetch from job_seekers
+          const doc = await firebase.firestore().collection('job_seekers').doc(idQ).get();
           if (doc && doc.exists) p = { id: doc.id, ...(doc.data()||{}) };
         }
       }catch{}
