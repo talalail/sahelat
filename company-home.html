@@ -10,9 +10,9 @@
   <script src="js/firebase-config.js"></script>
   <script src="js/firebase.js"></script>
   <style>
-    .filters{display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr; gap:10px}
-    @media (max-width: 900px){.filters{grid-template-columns:1fr 1fr}}
-    @media (max-width: 560px){.filters{grid-template-columns:1fr}}
+  .filters{display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr; gap:10px}
+  @media (max-width: 900px){.filters{grid-template-columns:1fr 1fr 1fr}}
+  @media (max-width: 560px){.filters{grid-template-columns:1fr}}
     /* Rotating subtitle text (light, subtle) */
   #rotatingText{display:inline-block; opacity:0; transform:translateY(6px); transition: opacity .35s ease, transform .35s ease; color:#334155; font-size:16px}
     #rotatingText.show{opacity:1; transform:translateY(0)}
@@ -81,6 +81,14 @@
         <option>أبها</option>
         <option>جازان</option>
       </select>
+      <select id="fCert">
+        <option value="">الشهادة</option>
+        <option>ثانوي</option>
+        <option>دبلوم</option>
+        <option>بكالوريوس</option>
+        <option>ماجستير</option>
+        <option>دكتوراه</option>
+      </select>
       <input id="minAge" inputmode="numeric" maxlength="2" placeholder="عمر من" />
       <input id="maxAge" inputmode="numeric" maxlength="2" placeholder="عمر إلى" />
     </div>
@@ -132,7 +140,7 @@
   <div id="results" class="form-card" style="display:none"></div>
   </section>
 </main>
-<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات · <a class="btn" href="sync.html" style="padding:6px 10px">مزامنة البيانات</a></div></footer>
+<footer class="site-footer"><div class="container">© <span id="y"></span> سهلات</div></footer>
 <script>
   document.getElementById('y').textContent = new Date().getFullYear();
   // Gate access: require prior company access approval
@@ -189,6 +197,7 @@
     q: document.getElementById('q'),
     job: document.getElementById('fJob'),
     city: document.getElementById('fCity'),
+    cert: document.getElementById('fCert'),
     minAge: document.getElementById('minAge'),
     maxAge: document.getElementById('maxAge')
   };
@@ -247,13 +256,21 @@
     }
     if (mutated){ try{ localStorage.setItem('seekers', JSON.stringify(arr)); }catch{} }
   const q = els.q ? (els.q.value||'').trim() : '';
-    const job = els.job.value||''; const city = els.city.value||'';
+  const job = els.job.value||''; const city = els.city.value||''; const cert = els.cert.value||'';
     const min = parseInt(digits(els.minAge.value)||'-1',10); const max = parseInt(digits(els.maxAge.value)||'999',10);
     const out = arr.filter(s=>{
       // text query over name/city/nationality
       if (q){ const txt=(s.fullName+' '+(s.city||'')+' '+(s.nationality||'')).toLowerCase(); if(!txt.includes(q.toLowerCase())) return false; }
       if (job){ if (!Array.isArray(s.jobs) || !s.jobs.includes(job)) return false; }
       if (city){ if (s.city!==city) return false; }
+      if (cert){
+        // يدعم الشهادة كـ s.certificate أو s.certificates أو s.degree
+        let certs = [];
+        if (Array.isArray(s.certificates)) certs = s.certificates.map(c=> typeof c==='string'?c:(c && c.name)||'');
+        if (s.certificate) certs.push(s.certificate);
+        if (s.degree) certs.push(s.degree);
+        if (!certs.some(c=> c && c.includes(cert))) return false;
+      }
       const ageNum = parseInt((s.age||'').replace(/[^0-9]/g,''),10);
       if (!isNaN(min) && ageNum < min) return false;
       if (!isNaN(max) && ageNum > max) return false;
@@ -268,6 +285,7 @@
   if (els.q) els.q.addEventListener('input', apply);
   els.job.addEventListener('change', apply);
   els.city.addEventListener('change', apply);
+  els.cert.addEventListener('change', apply);
   els.minAge.addEventListener('input', apply);
   els.maxAge.addEventListener('input', apply);
   apply();
